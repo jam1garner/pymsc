@@ -199,8 +199,11 @@ class MscScript:
             returnVal += str(command) + "\n"
         return returnVal
 
+    def __len__(self):
+        return len(self.cmds)
+
     def read(self, f, start, end):
-        self.bounds = [start, end]
+        self.bounds = [start - 0x30, end - 0x30]
         f.seek(start)
         self.cmds = disassembleCommands(f.read(end - start), start - 0x30)
 
@@ -258,6 +261,9 @@ class MscFile:
                 returnVal += str(command) + "\n"
         return returnVal
 
+    def __len__(self):
+        return len(self.scripts)
+
     def readFromFile(self, f, headerEndianess = '<'):
         f.seek(0x10)
         entriesOffset = readInt(f, headerEndianess) + 0x30
@@ -293,11 +299,11 @@ class MscFile:
             newScript.read(f, start, end)
             self.scripts.append(newScript)
 
-    def readFromBytes(self, b):
+    def readFromBytes(self, b, headerEndianess='>'):
         with tempfile.SpooledTemporaryFile(mode='w+b') as f:
             f.write(b)
             f.seek(0)
-            readFromFile(f, '>')
+            self.readFromFile(f, headerEndianess)
 
     def getScriptAtLocation(self, location):
         for script in self.scripts:
