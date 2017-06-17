@@ -83,7 +83,7 @@ COMMAND_NAMES = {
 
 COMMAND_FORMAT = {
     0x0 : '',
-    0x2 : 'BBBB',
+    0x2 : 'HH',
     0x3 : '',
     0x4 : 'I',
     0x5 : 'I',
