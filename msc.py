@@ -83,7 +83,7 @@ COMMAND_NAMES = {
 
 COMMAND_FORMAT = {
     0x0 : '',
-    0x2 : 'HH',
+    0x2 : 'BBBB',
     0x3 : '',
     0x4 : 'I',
     0x5 : 'I',
@@ -105,6 +105,7 @@ COMMAND_FORMAT = {
     0x16 : '',
     0x17 : '',
     0x1a : '',
+    0x1b : '',
     0x1c : 'BH',
     0x1d : 'BH',
     0x1e : 'BH',
@@ -139,6 +140,7 @@ COMMAND_FORMAT = {
     0x3c : '',
     0x3d : '',
     0x3e : '',
+    0x3f : '',
     0x40 : 'BH',
     0x41 : 'BH',
     0x42 : 'BH',
@@ -195,7 +197,7 @@ class Command:
         else:
             self.command = 0xFF #unknown command, display as ???
 
-    def __strParams(self):
+    def strParams(self):
         params = ""
         for i in range(len(self.parameters)):
             params += hex(self.parameters[i])
@@ -212,7 +214,7 @@ class Command:
         com = "{0:0{1}x}".format(self.commandPosition,8).upper()+':'+temp+' '+COMMAND_NAMES[self.command]+' '
         if len(com) < 37:
             com += (37 - len(com)) * ' '
-        return com+self.__strParams()
+        return com+self.strParams()
 
 class MscScript:
     def __init__(self):
@@ -229,6 +231,7 @@ class MscScript:
 
     def __next__(self):
         if self._iterationPosition >= len(self.cmds):
+            self._iterationPosition = 0
             raise StopIteration
         else:
             self._iterationPosition += 1
@@ -289,6 +292,7 @@ class MscFile:
 
     def __next__(self):
         if self._iterationPosition >= len(self.scripts):
+            self._iterationPosition = 0
             raise StopIteration
         else:
             self._iterationPosition += 1
