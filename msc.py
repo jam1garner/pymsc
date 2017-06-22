@@ -83,7 +83,7 @@ COMMAND_NAMES = {
 
 COMMAND_FORMAT = {
     0x0 : '',
-    0x2 : 'BBBB',
+    0x2 : 'HH',
     0x3 : '',
     0x4 : 'I',
     0x5 : 'I',
@@ -187,6 +187,7 @@ class Command:
         self.pushBit = False
         self.paramSize = 0
         self.commandPosition = 0
+        self.debugString = None
 
     def read(self, byteBuffer, pos):
         self.command = int(byteBuffer[pos]) & 0x7F
@@ -214,6 +215,8 @@ class Command:
         com = "{0:0{1}x}".format(self.commandPosition,8).upper()+':'+temp+' '+COMMAND_NAMES[self.command]+' '
         if len(com) < 37:
             com += (37 - len(com)) * ' '
+        if self.debugString != None:
+            return com+self.strParams()+'   #'+self.debugString
         return com+self.strParams()
 
 class MscScript:
@@ -354,3 +357,9 @@ class MscFile:
         for script in self.scripts:
             if script.bounds[0] <= location and script.bounds[1] > location:
                 return script
+
+    def addDebugStrings(self):
+        for script in self.scripts:
+            for i in range(len(script)):
+                if script[i].command == 0x2C and script[i].parameters[0] > 0:
+                    script[i].debugString = '"'+self.strings[script[i-script[i].parameters[0]].parameters[0]]+'"'
