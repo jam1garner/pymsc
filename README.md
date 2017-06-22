@@ -18,6 +18,12 @@ with open(filename, 'rb') as f:
   mscData.readFromFile(f)
 ```
 
+Including debug strings in string output of commands:
+
+```python
+mscData.addDebugStrings()
+```
+
 Iterating through file: (+ getting command name from command number)
 
 ```python
