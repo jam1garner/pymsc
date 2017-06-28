@@ -9,6 +9,7 @@ with open(fname, 'rb') as f:
     mscFile.readFromFile(f)
 
 mscFile.addDebugStrings()
+mscFile.addScriptNames()
 
 with open('dump.txt', 'w') as out:
     scriptNum = 0

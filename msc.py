@@ -47,11 +47,11 @@ COMMAND_NAMES = {
     0x2a : "greaterOrEqual",
     0x2b : "not",
     0x2c : "printf",
-    0x2d : "Call_Func",
+    0x2d : "sys",
     0x2e : "unk_2E",
-    0x2f : "Call_Func2",
-    0x30 : "call_func3",
-    0x31 : "Call_Func4",
+    0x2f : "Call_Func",
+    0x30 : "Call_Func2",
+    0x31 : "Call_Func3",
     0x32 : "push",
     0x33 : "pop",
     0x34 : "if",
@@ -203,7 +203,10 @@ class Command:
     def strParams(self):
         params = ""
         for i in range(len(self.parameters)):
-            params += hex(self.parameters[i])
+            if isinstance(self.parameters[i], int):
+                params += hex(self.parameters[i])
+            else:
+                params += str(self.parameters[i])
             if i != len(self.parameters) - 1:
                 params += ', '
         return params
@@ -365,3 +368,20 @@ class MscFile:
             for i in range(len(script)):
                 if script[i].command == 0x2C and script[i].parameters[0] > 0:
                     script[i].debugString = '"'+self.strings[script[i-script[i].parameters[0]].parameters[0]]+'"'
+
+    def addScriptNames(self):
+        for script in self.scripts:
+            for i,command in enumerate(script):
+                if command.command in range(0x2f, 0x31):
+                    scriptName = None
+                    print(command)
+                    for j in range(i - 1, -1, -1):
+                        print(j)
+                        if script[j].pushBit:
+                            print(str(j)+' has pushBit')
+                            if script[j].command in (0xa, 0xd):
+                                thisScript = self.getScriptAtLocation(script[j].parameters[0])
+                                scriptNum = self.scripts.index(thisScript)
+                                print("script_"+str(scriptNum))
+                                command.parameters.insert(0, "script_"+str(scriptNum))
+                            break
