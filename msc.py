@@ -82,6 +82,8 @@ COMMAND_NAMES = {
     0x4d : "exit"
 }
 
+COMMAND_IDS = {v: k for k, v in COMMAND_NAMES.items()}
+
 COMMAND_FORMAT = {
     0x0 : '',
     0x2 : 'HH',
@@ -182,6 +184,23 @@ def disassembleCommands(rawCommands, startOffset):
         pos += (1 + newCommand.paramSize)
     return commands
 
+def parseCommands(text):
+    lines = text.replace(', ',',').split('\n')
+    lines = [line.strip() for line in lines if line.strip() != '']
+    lines = [line.split('#')[0] for line in lines if line.split('#')[0] != '']
+    splitCommands = [[split for split in line.split(' ') if split != ''] for line in lines]
+    cmds = []
+    for splitCommand in splitCommands:
+        cmd = Command()
+        if splitCommand[0][-1] == '.':
+            cmd.pushBit = True
+            splitCommand[0] = splitCommand[0][0:-1]
+        cmd.command = COMMAND_IDS[splitCommand[0]]
+        if len(splitCommand) > 1:
+            cmd.parameters = [int(param, 0) for param in splitCommand[1].split(',')]
+        cmds.append(cmd)
+    return cmds
+
 class Command:
     def __init__(self):
         self.command = 0
@@ -199,6 +218,12 @@ class Command:
             self.parameters = list(struct.unpack('>'+COMMAND_FORMAT[self.command], byteBuffer[pos+1:pos+1+self.paramSize]))
         else:
             self.command = 0xFF #unknown command, display as ???
+
+    def write(self, endian='>'):
+        returnBytes = bytes([self.command])
+        for i,paramChar in enumerate(COMMAND_FORMAT[self.command]):
+            returnBytes += struct.pack(endian+paramChar, self.parameters[i])
+        return returnBytes
 
     def strParams(self):
         params = ""
