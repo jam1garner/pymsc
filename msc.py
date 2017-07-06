@@ -4,8 +4,8 @@ MSC_MAGIC = b'\xB2\xAC\xBC\xBA\xE6\x90\x32\x01\xFD\x02\x00\x00\x00\x00\x00\x00'
 
 COMMAND_NAMES = {
     0x0 : "nop",
-    0x2 : "BeginSub",
-    0x3 : "End",
+    0x2 : "begin",
+    0x3 : "end",
     0x4 : "jump4",
     0x5 : "jump5",
     0x6 : "return_6",
@@ -24,10 +24,10 @@ COMMAND_NAMES = {
     0x13 : "negi",
     0x14 : "i++",
     0x15 : "i--",
-    0x16 : "BitwiseAnd",
-    0x17 : "BitwiseOr",
-    0x18 : "BitwiseNot",
-    0x19 : "BitwiseXor",
+    0x16 : "bitAnd",
+    0x17 : "bitOr",
+    0x18 : "bitNot",
+    0x19 : "bitXor",
     0x1a : "leftShift",
     0x1b : "rightShift",
     0x1c : "setVar",
@@ -49,9 +49,9 @@ COMMAND_NAMES = {
     0x2c : "printf",
     0x2d : "sys",
     0x2e : "unk_2E",
-    0x2f : "Call_Func",
-    0x30 : "Call_Func2",
-    0x31 : "Call_Func3",
+    0x2f : "callFunc",
+    0x30 : "callFunc2",
+    0x31 : "callFunc3",
     0x32 : "push",
     0x33 : "pop",
     0x34 : "if",
@@ -184,21 +184,54 @@ def disassembleCommands(rawCommands, startOffset):
         pos += (1 + newCommand.paramSize)
     return commands
 
+#Thanks Triptych https://stackoverflow.com/questions/1265665/python-check-if-a-string-represents-an-int-without-using-try-except
+def _RepresentsInt(s):
+    try:
+        int(s, 0)
+        return True
+    except ValueError:
+        return False
+
+globalAliases = {}
+
 def parseCommands(text):
     lines = text.replace(', ',',').split('\n')
     lines = [line.strip() for line in lines if line.strip() != '']
     lines = [line.split('#')[0] for line in lines if line.split('#')[0] != '']
     splitCommands = [[split for split in line.split(' ') if split != ''] for line in lines]
     cmds = []
+    labels = {}
+    aliases = {}
+    currentPos = 0
     for splitCommand in splitCommands:
         cmd = Command()
-        if splitCommand[0][-1] == '.':
-            cmd.pushBit = True
-            splitCommand[0] = splitCommand[0][0:-1]
-        cmd.command = COMMAND_IDS[splitCommand[0]]
-        if len(splitCommand) > 1:
-            cmd.parameters = [int(param, 0) for param in splitCommand[1].split(',')]
-        cmds.append(cmd)
+        if splitCommand[0][-1] == ':':
+            labels[splitCommand[0][0:-1]] = currentPos
+        elif splitCommand[0] == '.alias':
+            params = splitCommand[1].split(',')
+            aliases[params[1]] = int(params[0], 0)
+        else:
+            if splitCommand[0][-1] == '.':
+                cmd.pushBit = True
+                splitCommand[0] = splitCommand[0][0:-1]
+            cmd.command = COMMAND_IDS[splitCommand[0]]
+            currentPos += getSizeFromFormat(COMMAND_FORMAT[cmd.command]) + 1
+            if len(splitCommand) > 1:
+                cmd.parameters = [param for param in splitCommand[1].split(',')]
+            cmds.append(cmd)
+    labelNames = labels.keys()
+    aliasNames = aliases.keys()
+    globalAliasNames = globalAliases.keys()
+    for cmd in cmds:
+        for i in range(len(cmd.parameters)):
+            if cmd.parameters[i] in labelNames:
+                cmd.parameters[i] = labels[cmd.parameters[i]]
+            elif cmd.parameters[i] in aliasNames:
+                cmd.parameters[i] = aliases[cmd.parameters[i]]
+            elif cmd.parameters[i] in globalAliasNames:
+                cmd.parameters[i] = globalAliases[cmd.parameters[i]]
+            elif _RepresentsInt(cmd.parameters[i]):
+                cmd.parameters[i] = int(cmd.parameters[i], 0)
     return cmds
 
 class Command:
@@ -299,6 +332,17 @@ class MscScript:
 
     def getInstructionOfIndex(self, index):
         return cmd[index].commandPosition
+
+    def offset(self, offset):
+        for cmd in self.cmds:
+            if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
+                cmd.parameters[0] += offset
+
+    def size(self):
+        s = 0
+        for cmd in self.cmds:
+            s += 1+getSizeFromFormat(COMMAND_FORMAT[cmd.command])
+        return s
 
 def readInt(f, endian):
     try:

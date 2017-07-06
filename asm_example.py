@@ -1,6 +1,8 @@
 from msc import *
+import sys
 
-with open("testAsm.txt","r") as f:
+with open("testAsm.txt",'r') as f:
+#with open(sys.argv[1], "r") as f:
     text = f.read()
 
 script = bytes()
