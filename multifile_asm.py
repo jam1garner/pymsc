@@ -7,7 +7,9 @@ if not isfile('Scripts') and len(argv) < 2:
     quit()
 elif len(argv) >= 2:
     with open(argv[1], 'r') as f:
-        scriptPaths = [line.split('#')[0].strip() for line in f.read().split('\n') if line.split('#')[0].strip() != '']
+        lines = f.read().split('\n')
+        scriptPaths = [line.split('#')[0].strip() for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>']
+        globalPaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] == '>']
 else:
     with open('Scripts', 'r') as f:
         lines = f.read().split('\n')

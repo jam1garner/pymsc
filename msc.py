@@ -253,7 +253,7 @@ class Command:
             self.command = 0xFF #unknown command, display as ???
 
     def write(self, endian='>'):
-        returnBytes = bytes([self.command])
+        returnBytes = bytes([self.command | (0x80 if self.pushBit else 0x0)])
         for i,paramChar in enumerate(COMMAND_FORMAT[self.command]):
             returnBytes += struct.pack(endian+paramChar, self.parameters[i])
         return returnBytes
