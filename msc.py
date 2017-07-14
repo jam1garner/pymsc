@@ -528,7 +528,7 @@ class MscFile:
         for script in self.scripts:
             for i in range(len(script)):
                 if script[i].command == 0x2C and script[i].parameters[0] > 0:
-                    script[i].debugString = '"'+self.strings[script[i-script[i].parameters[0]].parameters[0]]+'"'
+                    script[i].debugString = self.strings[script[i-script[i].parameters[0]].parameters[0]]
 
     def addScriptNames(self):
         for script in self.scripts:

@@ -138,6 +138,7 @@ def main():
 
     with open(fname, 'rb') as f:
         mscFile.readFromFile(f)
+        mscFile.addDebugStrings()
 
     if not os.path.isdir("output/"):
         os.mkdir("output/")
@@ -179,6 +180,7 @@ def main():
                         scriptPrinted = True
                     print('\t%i | %s | may be %s' % (j,str(comm),scriptNames[comm.parameters[0]]))
             print('%sscript_%i.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',i),file=f)
+
             jumpPositions = []
             for cmd in script:
                 if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
@@ -190,7 +192,7 @@ def main():
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)
                         print('loc_%X:' % (cmd.commandPosition - script.bounds[0]), file=scriptFile)
-                    print((' ' * 8 if len(jumpPositions) > 0 else '') + COMMAND_NAMES[cmd.command] + ('.' if cmd.pushBit else '') + ' '+cmd.strParams(), file=scriptFile)
+                    print((' ' * 8 if len(jumpPositions) > 0 else '') + COMMAND_NAMES[cmd.command] + ('.' if cmd.pushBit else '') + ' '+cmd.strParams() + (' #"%s"' % cmd.debugString if cmd.debugString != None else ''), file=scriptFile)
 
 if __name__ == '__main__':
     start = timeit.default_timer()
