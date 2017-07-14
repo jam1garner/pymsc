@@ -68,10 +68,8 @@ for script in scripts:
             if cmd.parameters[i] in scriptNames:
                 cmd.parameters[i] = scriptPositions[cmd.parameters[i]]
 
-currentPos = 0x10
 for i,script in enumerate(scripts):
-    script.offset(currentPos)
-    currentPos += script.size()
+    script.offset(scriptPositions['script_%i' % i])
 
 fileBytes = MSC_MAGIC
 fileBytes += struct.pack('<L', currentPos)

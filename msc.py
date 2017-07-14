@@ -161,6 +161,86 @@ COMMAND_FORMAT = {
     0x4d : ''
 }
 
+COMMAND_STACKPOPS = {
+    0x0 : lambda params: 0,
+    0x2 : lambda params: 0,
+    0x3 : lambda params: 0,
+    0x4 : lambda params: 0,
+    0x5 : lambda params: 0,
+    0x6 : lambda params: 1,
+    0x7 : lambda params: 0,
+    0x8 : lambda params: 1,
+    0x9 : lambda params: 0,
+    0xa : lambda params: 0,
+    0xb : lambda params: 0,
+    0xc : lambda params: 0,
+    0xd : lambda params: 0,
+    0xe : lambda params: 2,
+    0xf : lambda params: 2,
+    0x10 : lambda params: 2,
+    0x11 : lambda params: 2,
+    0x12 : lambda params: 2,
+    0x13 : lambda params: 1,
+    0x14 : lambda params: 0,
+    0x15 : lambda params: 0,
+    0x16 : lambda params: 2,
+    0x17 : lambda params: 2,
+    0x18 : lambda params: 1,
+    0x19 : lambda params: 2,
+    0x1a : lambda params: 2,
+    0x1b : lambda params: 2,
+    0x1c : lambda params: 1,
+    0x1d : lambda params: 1,
+    0x1e : lambda params: 1,
+    0x1f : lambda params: 1,
+    0x20 : lambda params: 1,
+    0x21 : lambda params: 1,
+    0x22 : lambda params: 1,
+    0x23 : lambda params: 1,
+    0x24 : lambda params: 1,
+    0x25 : lambda params: 2,
+    0x26 : lambda params: 2,
+    0x27 : lambda params: 2,
+    0x28 : lambda params: 2,
+    0x29 : lambda params: 2,
+    0x2a : lambda params: 2,
+    0x2b : lambda params: 1,
+    0x2c : lambda params: params[0],
+    0x2d : lambda params: params[0],
+    0x2e : lambda params: 0,
+    0x2f : lambda params: params[0] + 1,
+    0x30 : lambda params: params[0] + 1,
+    0x31 : lambda params: params[0] + 1,
+    0x32 : lambda params: -1,
+    0x33 : lambda params: 1,
+    0x34 : lambda params: 1,
+    0x35 : lambda params: 1,
+    0x36 : lambda params: 0,
+    0x37 : lambda params: 0,
+    0x38 : lambda params: 0,
+    0x39 : lambda params: 0,
+    0x3a : lambda params: 2,
+    0x3b : lambda params: 2,
+    0x3c : lambda params: 2,
+    0x3d : lambda params: 2,
+    0x3e : lambda params: 1,
+    0x3f : lambda params: 0,
+    0x40 : lambda params: 0,
+    0x41 : lambda params: 1,
+    0x42 : lambda params: 1,
+    0x43 : lambda params: 1,
+    0x44 : lambda params: 1,
+    0x45 : lambda params: 1,
+    0x46 : lambda params: 2,
+    0x47 : lambda params: 2,
+    0x48 : lambda params: 2,
+    0x49 : lambda params: 2,
+    0x4a : lambda params: 2,
+    0x4b : lambda params: 2,
+    0x4c : lambda params: 0,
+    0x4d : lambda params: 0
+}
+
 TYPE_SIZES = {
     'B' : 1,
     'H' : 2,
@@ -303,6 +383,9 @@ class MscScript:
             self._iterationPosition += 1
             return self.cmds[self._iterationPosition - 1]
 
+    def next(self):
+        return self.__next__()
+
     def __str__(self):
         returnVal = ""
         for command in self.cmds:
@@ -328,10 +411,16 @@ class MscScript:
             cmd = self.cmds[i]
             if cmd.commandPosition == location:
                 return i
-        return 0
+        return None
 
     def getInstructionOfIndex(self, index):
         return cmd[index].commandPosition
+
+    def getCommand(self, location):
+        cmdIndex = getIndexOfInstruction(location)
+        if cmdIndex != None:
+            self.cmds[cmdIndex]
+        return None
 
     def offset(self, offset):
         for cmd in self.cmds:
@@ -374,6 +463,9 @@ class MscFile:
         else:
             self._iterationPosition += 1
             return self.scripts[self._iterationPosition - 1]
+
+    def next(self):
+        return self.__next__()
 
     def __str__(self):
         returnVal = ""
