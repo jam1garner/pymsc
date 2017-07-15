@@ -9,6 +9,8 @@ gvIsOffset = [False for i in range(64)]
 for gv in range(11,17):
     gvIsOffset[gv] = True
 gvIsOffset[21] = True
+gvIsOffset[22] = True
+gvIsOffset[35] = True
 
 def updateScriptReference(popped, index, scriptName):
     global scriptCalledVars
