@@ -10,6 +10,7 @@ for gv in range(11,17):
     gvIsOffset[gv] = True
 gvIsOffset[21] = True
 gvIsOffset[22] = True
+gvIsOffset[23] = True
 gvIsOffset[35] = True
 
 def updateScriptReference(popped, index, scriptName):
@@ -147,7 +148,7 @@ def main():
 
     with open('output/Scripts', 'w') as f:
         print('>globals.txt', file=f)
-        with open('output/globals.txt', 'w') as globalFile:
+        with open('output/globals.txt', 'w', encoding='utf-8') as globalFile:
             for string in mscFile.strings:
                 print('.string '+string, file=globalFile)
 
@@ -189,7 +190,7 @@ def main():
                     if not cmd.parameters[0] in jumpPositions:
                         jumpPositions.append(cmd.parameters[0])
                     cmd.parameters[0] = 'loc_%X' % (cmd.parameters[0] - script.bounds[0])
-            with open('output/script_%i.txt' % (i), 'w') as scriptFile:
+            with open('output/script_%i.txt' % (i), 'w', encoding='utf-8') as scriptFile:
                 for cmd in script:
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)
