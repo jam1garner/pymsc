@@ -336,7 +336,8 @@ class Command:
             self.paramSize = getSizeFromFormat(COMMAND_FORMAT[self.command])
             self.parameters = list(struct.unpack('>'+COMMAND_FORMAT[self.command], byteBuffer[pos+1:pos+1+self.paramSize]))
         else:
-            self.command = 0xFF #unknown command, display as ???
+            self.parameters = [self.command]
+            self.command = 0xFFFE #unknown command, display as "byte X"
 
     def write(self, endian='>'):
         if self.command in [0xFFFE, 0xFFFF]:
