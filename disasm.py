@@ -47,6 +47,8 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
         clearedPaths = []
     try:
         i = startIndex
+        print(i)
+        print(len(script))
         while i < len(script):
             if scriptNames[script.bounds[0]] == 'script_X':
                 print('\t' * depth + str(stack))
