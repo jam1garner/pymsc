@@ -79,7 +79,9 @@ COMMAND_NAMES = {
     0x4a : "floatEqual",
     0x4b : "floatGreaterOrEqual",
     0x4c : "unk_4c",
-    0x4d : "exit"
+    0x4d : "exit",
+    0xFFFE : "byte",
+    0xFFFF : "long"
 }
 
 COMMAND_IDS = {v: k for k, v in COMMAND_NAMES.items()}
@@ -158,7 +160,9 @@ COMMAND_FORMAT = {
     0x4a : '',
     0x4b : '',
     0x4c : '',
-    0x4d : ''
+    0x4d : '',
+    0xFFFE : 'B',
+    0xFFFF : 'I'
 }
 
 COMMAND_STACKPOPS = {
@@ -238,7 +242,9 @@ COMMAND_STACKPOPS = {
     0x4a : lambda params: 2,
     0x4b : lambda params: 2,
     0x4c : lambda params: 0,
-    0x4d : lambda params: 0
+    0x4d : lambda params: 0,
+    0xFFFE : lambda params: 0,
+    0xFFFF : lambda params: 0
 }
 
 TYPE_SIZES = {
@@ -333,7 +339,10 @@ class Command:
             self.command = 0xFF #unknown command, display as ???
 
     def write(self, endian='>'):
-        returnBytes = bytes([self.command | (0x80 if self.pushBit else 0x0)])
+        if self.command in [0xFFFE, 0xFFFF]:
+            returnBytes = bytes()
+        else:
+            returnBytes = bytes([self.command | (0x80 if self.pushBit else 0x0)])
         for i,paramChar in enumerate(COMMAND_FORMAT[self.command]):
             returnBytes += struct.pack(endian+paramChar, self.parameters[i])
         return returnBytes
@@ -430,7 +439,7 @@ class MscScript:
     def size(self):
         s = 0
         for cmd in self.cmds:
-            s += 1+getSizeFromFormat(COMMAND_FORMAT[cmd.command])
+            s += (0 if cmd.command in [0xFFFE, 0xFFFF] else 1) + getSizeFromFormat(COMMAND_FORMAT[cmd.command])
         return s
 
 def readInt(f, endian):
