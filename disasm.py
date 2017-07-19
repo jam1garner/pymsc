@@ -124,7 +124,11 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
                         pass#return
             #if it hits a jump or else command, just jump it
             if script[i].command in [4, 5, 0x36]:
-                i = script.getIndexOfInstruction(script[i].parameters[0])
+                newIndex = script.getIndexOfInstruction(script[i].parameters[0])
+                if newIndex == None:
+                    i += 1
+                else:
+                    i = newIndex
             else:
                 #if it isn't a jump, move on to the next command
                 i += 1
