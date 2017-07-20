@@ -22,8 +22,8 @@ with open(argv[1], 'rb') as f:
     if len(argv) > 2:
         num = int(argv[2] ,0) if RepresentsInt(argv[2]) else getOffsetFromScriptName(mscFile, argv[2])
         for i,script in enumerate(mscFile):
-            if script.bounds[0] == num:
-                print('Offset %X = script_%i' % (num,i))
+            if script.bounds[0] <= num and num < script.bounds[1]:
+                print('Offset %X is in script_%i (offset %X)' % (num,i,script.bounds[0]))
     else:
         for i,script in enumerate(mscFile):
             print('Offset %X = script_%i' % (script.bounds[0],i))
