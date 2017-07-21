@@ -24,17 +24,20 @@ A Scripts file is a file that tells the assembler how to link the scripts. The f
 * Add a `>` before a script name to indicate it is a global file, global files are where you define strings and global aliases
 * Add a ':' before the script you want to be the entrypoint, if none is picked it defaults to script_0
 * In your scripts you can reference the offsets of other scripts using script_# where # is the script number, script number is determined by the index of the scripts in the Scripts file not including globals, blank lines or comments however most of the printed offsets do not need updating so only do this if something breaks!
+* Add a '|' before any paths you want the mscsb to be saved to
 
 **Example Script file:**
 
 ```python
 #comment (this is ignored)
 
-setupVars.txt #this is script_0
->strings.txt  #this is a globals file
-wavedash.txt  #this is script_1
+setupVars.txt                  #this is script_0
+>strings.txt                   #this is a globals file
+wavedash.txt                   #this is script_1
 
-:start.txt    #this is script_2 and the entrypoint
+:start.txt                     #this is script_2 and the entrypoint
+|lucinaWithWaveDashing.mscsb   #this is where it will saved
+|testFolder/archive/test.mscsb #it will also save here
 ```
 
 ## Library Basics

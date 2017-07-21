@@ -2,19 +2,18 @@ from msc import *
 from sys import argv
 from os.path import isfile
 
+scriptsFile = "Scripts"
 if not isfile('Scripts') and len(argv) < 2:
     print('No "Scripts" file found or provided')
     quit()
 elif len(argv) >= 2:
-    with open(argv[1], 'r') as f:
-        lines = f.read().split('\n')
-        scriptPaths = [line.split('#')[0].strip() for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>']
-        globalPaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] == '>']
-else:
-    with open('Scripts', 'r') as f:
-        lines = f.read().split('\n')
-        scriptPaths = [line.split('#')[0].strip() for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>']
-        globalPaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] == '>']
+    if argv[1].lower() != '-s':
+        scriptsFile = argv[1]
+with open(scriptsFile, 'r') as f:
+    lines = f.read().split('\n')
+scriptPaths = [line.split('#')[0].strip() for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>' and line.strip()[0] != '|']
+globalPaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] == '>' and line.strip()[0] != '|']
+savePaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>' and line.strip()[0] == '|']
 
 strings = []
 for globalPath in globalPaths:
@@ -75,7 +74,7 @@ fileBytes = MSC_MAGIC
 fileBytes += struct.pack('<L', currentPos)
 fileBytes += struct.pack('<L', scriptPositions[entrypoint])
 fileBytes += struct.pack('<L', len(scriptNames))
-fileBytes += struct.pack('<L', 0x16)
+fileBytes += struct.pack('<L', 0x16)#This probably doesn't matter?
 fileBytes += struct.pack('<L', maxStringLength)
 fileBytes += struct.pack('<L', len(strings))
 fileBytes += b'\x00' * 0x18
@@ -97,5 +96,13 @@ for string in strings:
     fileBytes += string.encode('ascii')
     fileBytes += b'\x00' * (maxStringLength - len(string))
 
-with open("test.mscsb" if len(argv) < 3 else argv[2], 'wb') as f:
-    f.write(fileBytes)
+if len(argv) >= 3:
+    for arg in argv[2:]:
+        savePaths.append(arg)
+
+if len(savePaths) == 0:
+    savePaths = ["test.mscsb"]
+
+for savePath in savePaths:
+    with open(savePath, 'wb') as f:
+        f.write(fileBytes)
