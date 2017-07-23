@@ -81,6 +81,7 @@ fileBytes += b'\x00' * 0x18
 
 for script in scripts:
     for cmd in script:
+        print(cmd)
         fileBytes += cmd.write()
 
 if len(fileBytes) % 0x10 != 0:

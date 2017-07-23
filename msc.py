@@ -289,7 +289,7 @@ def parseCommands(text):
     labels = {}
     aliases = {}
     currentPos = 0
-    for splitCommand in splitCommands:
+    for i,splitCommand in enumerate(splitCommands):
         cmd = Command()
         if splitCommand[0][-1] == ':':
             labels[splitCommand[0][0:-1]] = currentPos
@@ -345,7 +345,7 @@ class Command:
         else:
             returnBytes = bytes([self.command | (0x80 if self.pushBit else 0x0)])
         for i,paramChar in enumerate(COMMAND_FORMAT[self.command]):
-            returnBytes += struct.pack(endian+paramChar, self.parameters[i])
+            returnBytes += struct.pack(endian+paramChar, self.parameters[i] & 0xffffffff)
         return returnBytes
 
     def strParams(self):
