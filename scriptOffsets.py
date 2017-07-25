@@ -26,4 +26,4 @@ with open(argv[1], 'rb') as f:
                 print('Offset %X is in script_%i (offset %X)' % (num,i,script.bounds[0]))
     else:
         for i,script in enumerate(mscFile):
-            print('Offset %X = script_%i' % (script.bounds[0],i))
+            print('Offset %X = script_%i' % (script.bounds[0],i))       
