@@ -281,7 +281,7 @@ def _RepresentsInt(s):
 
 globalAliases = {}
 
-def parseCommands(text):
+def parseCommands(text, refs={}):
     lines = text.replace(', ',',').split('\n')
     lines = [line.strip() for line in lines if line.strip() != '']
     lines = [line.split('#')[0] for line in lines if line.split('#')[0] != '']
@@ -317,6 +317,8 @@ def parseCommands(text):
                 cmd.parameters[i] = aliases[cmd.parameters[i]]
             elif cmd.parameters[i] in globalAliasNames:
                 cmd.parameters[i] = globalAliases[cmd.parameters[i]]
+            elif cmd.parameters[i] in refs:
+                cmd.parameters[i] = refs[cmd.parameters[i]]
             elif _RepresentsInt(cmd.parameters[i]):
                 cmd.parameters[i] = int(cmd.parameters[i], 0)
     return cmds
@@ -456,6 +458,7 @@ class MscFile:
     def __init__(self):
         self.scripts = []
         self.strings = []
+        self.symbols = {}
         self.entryPoint = 0
         self.stringSize = 0
         self.unk = 0
@@ -523,6 +526,7 @@ class MscFile:
                 newScript.name = 'Entrypoint Script'
             newScript.read(f, start, end)
             self.scripts.append(newScript)
+        return self
 
     def readFromBytes(self, b, headerEndianess='>'):
         with tempfile.SpooledTemporaryFile(mode='w+b') as f:
