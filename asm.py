@@ -13,6 +13,8 @@ for arg in argv[1:]:
     elif state == "lib" or state == "library":
         isLib = True
         state = None #The next passed value should be handled normally
+    elif state == "saveas":
+        savePaths.append(arg)
     if state == None:
         if arg[:2] == "--":
             state = arg[2:].lower()
@@ -117,8 +119,8 @@ else:
     fileBytes += struct.pack('<L', 0x16)#This probably doesn't matter?
     fileBytes += struct.pack('<L', maxStringLength)
     fileBytes += struct.pack('<L', len(strings))
-    fileBytes += struct.pack('<L', libOffset)
-    fileBytes += struct.pack('<L', exportCount)
+    fileBytes += struct.pack('<L', 0)
+    fileBytes += struct.pack('<L', 0)
     fileBytes += b'\x00' * 0x10
 
     for script in scripts:

@@ -141,18 +141,22 @@ def main():
     global clearedPaths,scriptCalledVars
     fname = sys.argv[1]
 
+    outputDir = "output/"
+    if len(sys.argv) >= 3:
+        outputDir = sys.argv[2].rstrip('/').rstrip('\\') + '/'
+
     mscFile = MscFile()
 
     with open(fname, 'rb') as f:
         mscFile.readFromFile(f)
         mscFile.addDebugStrings()
 
-    if not os.path.isdir("output/"):
-        os.mkdir("output/")
+    if not os.path.isdir(outputDir):
+        os.mkdir(outputDir)
 
-    with open('output/Scripts', 'w') as f:
+    with open(outputDir+'Scripts', 'w') as f:
         print('>globals.txt', file=f)
-        with open('output/globals.txt', 'w', encoding='utf-8') as globalFile:
+        with open(outputDir+'globals.txt', 'w', encoding='utf-8') as globalFile:
             for string in mscFile.strings:
                 print('.string '+string, file=globalFile)
 
@@ -194,7 +198,7 @@ def main():
                     if not cmd.parameters[0] in jumpPositions:
                         jumpPositions.append(cmd.parameters[0])
                     cmd.parameters[0] = 'loc_%X' % (cmd.parameters[0] - script.bounds[0])
-            with open('output/script_%i.txt' % (i), 'w', encoding='utf-8') as scriptFile:
+            with open(outputDir+'script_%i.txt' % (i), 'w', encoding='utf-8') as scriptFile:
                 for cmd in script:
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)
