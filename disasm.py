@@ -152,7 +152,7 @@ def main():
         mscFile.addDebugStrings()
 
     if not os.path.isdir(outputDir):
-        os.mkdir(outputDir)
+        os.makedirs(outputDir, exist_ok=True)
 
     with open(outputDir+'Scripts', 'w') as f:
         print('>globals.txt', file=f)
