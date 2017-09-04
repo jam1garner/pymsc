@@ -461,6 +461,13 @@ class MscScript:
             if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
                 cmd.parameters[0] += offset
 
+    def setStart(self, start):
+        self.bounds[0] = start
+        i = start
+        for cmd in self.cmds:
+            cmd.commandPosition = i
+            i += len(cmd)
+
     def size(self):
         s = 0
         for cmd in self.cmds:

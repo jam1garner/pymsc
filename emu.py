@@ -1,6 +1,7 @@
 from msc import *
 import struct
 from sys import argv
+from time import sleep
 
 class FunctionInfo:
     def __init__(self, thisLocalVarPos, returnAddress):
@@ -162,6 +163,9 @@ def evalCommand(command):
         localVarPos = stackPos
         stackPos += cParams[1]
     elif c == 0x3: #end
+        if len(functionStack) == 0:
+            executing = False
+            return
         fInfo = functionStack.pop()
         if fInfo.returnAddress == None:
             executing = False
@@ -287,7 +291,7 @@ def evalCommand(command):
 
         if not hitException:
             isJump = True
-            linkRegister = evalPos + len(command) + 1
+            linkRegister = evalPos + len(command)
             evalPos = jumpPos
     elif c == 0x32:
         v = pop()
@@ -359,23 +363,54 @@ def evalCommand(command):
     if not isJump:
         evalPos += len(command)
 
-def evalFile(filepath):
+def evalMscFile(mscFileObject):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
-    with open(filepath, 'rb') as f:
-        mscFile = MscFile().readFromFile(f)
+    mscFile = mscFileObject
     strings = mscFile.strings
     evalPos = mscFile.entryPoint
     startScript = mscFile.getScriptAtLocation(mscFile.entryPoint)
     if startScript != None:
         executing = True
         while executing:
-            evalCommand(mscFile.getScriptAtLocation(evalPos).getCommand(evalPos))
-            if executing:
-                executing = (evalPos != None)
+            currentExecutingScript = mscFile.getScriptAtLocation(evalPos)
+            if currentExecutingScript != None:
+                evalCommand(currentExecutingScript.getCommand(evalPos))
+                if executing:
+                    executing = (evalPos != None)
+            else:
+                executing = False
 
-def evalTextCommand(cmd):
-    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
-    pass
+def evalFile(filepath):
+    with open(filepath, 'rb') as f:
+        mscFile = MscFile().readFromFile(f)
+    evalMscFile(mscFile)
+
+def evalText():
+    mscFile = MscFile()
+    strs = []
+    scriptString = ""
+    print("+----------------------------------------------+")
+    print("|  Text interpreter - Type in your script.     |")
+    print("|  Script input will stop after you type 'end' |")
+    print("+----------------------------------------------+")
+    nextLine = input("> ")
+    while nextLine.strip().lower() != "end":
+        scriptString += nextLine + "\n"
+        nextLine = input("> ")
+    print("------------------------------------------------")
+    scr = MscScript()
+    cmds = parseCommands(scriptString, mscStrings=strs)
+    cmdsSize = 0
+    for c in cmds:
+        cmdsSize += len(c)
+    scr.bounds = [0x10, 0x10+cmdsSize]
+    scr.cmds = cmds
+    scr.setStart(0x10)
+    scr.offset(0x10)
+    mscFile.entryPoint = 0x10
+    mscFile.strings = strs
+    mscFile.scripts.append(scr)
+    evalMscFile(mscFile)
 
 def main():
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
@@ -394,7 +429,7 @@ def main():
     if len(argv) > 1:
         evalFile(argv[1])
     else:
-        pass #Go to text evaluation
+        evalText() #Go to text evaluation
 
 if __name__ == '__main__':
     main()
