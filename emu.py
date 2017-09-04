@@ -99,12 +99,19 @@ def setVar(type, varNum, value):
 #Converts an int representing bytes to a float
 #Example 0x3F800000 -> 1.0
 def intToFloat(val):
-    return stuct.unpack('>f', struct.pack('>L', val))[0]
+    return struct.unpack('>f', struct.pack('>L', val))[0]
 
 #Converts a float to an int representing bytes
 #Example 1.0 -> 0x3F800000
 def floatToInt(val):
-    return stuct.unpack('>L', struct.pack('>f', val))[0]
+    return struct.unpack('>L', struct.pack('>f', val))[0]
+
+def printf(printString, args):
+    specifierLocs = [i for i,j in enumerate(printString) if j == '%' and i < len(printString) and printString[i+1] in ['X', 'i', 'f', '0']]
+    for i,j in enumerate(specifierLocs):
+        if printString[j+1] == 'f':
+            args[i] = intToFloat(args[i])
+    print(printString % tuple(args))
 
 def evalCommand(command):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
@@ -238,8 +245,7 @@ def evalCommand(command):
         formatValues = []
         for i in range(cParams[0]-1):
             formatValues.insert(0, pop())
-        formatValues = tuple(formatValues)
-        print(formatString % formatValues)
+        printf(formatString, formatValues)
     elif c == 0x2D:
         args = tuple([cParams[1]] + [pop() for i in range(cParams[0])]) #syscall
         print(("Syscall %X args: ["+("%X, " * len(args))+"]") % args)

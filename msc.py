@@ -279,6 +279,13 @@ def _RepresentsInt(s):
     except:
         return False
 
+def _RepresentsFloat(s):
+    try:
+        float(s.rstrip('f'))
+        return True
+    except:
+        return False
+
 globalAliases = {}
 
 def parseCommands(text, refs={}, mscStrings=[]):
@@ -330,6 +337,8 @@ def parseCommands(text, refs={}, mscStrings=[]):
                 cmd.parameters[i] = refs[cmd.parameters[i]]
             elif _RepresentsInt(cmd.parameters[i]):
                 cmd.parameters[i] = int(cmd.parameters[i], 0)
+            elif _RepresentsFloat(cmd.parameters[i]):
+                cmd.parameters[i] = struct.unpack('>L', struct.pack('>f', float(cmd.parameters[i].rstrip('f'))))[0]
     return cmds
 
 class Command:
