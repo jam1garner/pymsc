@@ -71,13 +71,6 @@ else:
                     with open(importPath) as f:
                         pass
 
-    maxStringLength = 0
-    for string in strings:
-        if len(string) > maxStringLength:
-            maxStringLength = len(string)
-    if maxStringLength % 0x10 != 0:
-        maxStringLength += 0x10 - (maxStringLength % 0x10)
-
     entrypoint = 'script_0'
 
     for i,script in enumerate(scriptPaths):
@@ -93,7 +86,7 @@ else:
     for script in scriptPaths:
         with open(script, 'r') as f:
             tempScript = MscScript()
-            tempScript.cmds = parseCommands(f.read())
+            tempScript.cmds = parseCommands(f.read(), mscStrings=strings)
             scripts.append(tempScript)
 
     scriptPositions = {}
@@ -111,6 +104,14 @@ else:
 
     for i,script in enumerate(scripts):
         script.offset(scriptPositions['script_%i' % i])
+
+
+    maxStringLength = 0
+    for string in strings:
+        if len(string) > maxStringLength:
+            maxStringLength = len(string)
+    if maxStringLength % 0x10 != 0:
+        maxStringLength += 0x10 - (maxStringLength % 0x10)
 
     fileBytes = MSC_MAGIC
     fileBytes += struct.pack('<L', currentPos)
@@ -140,6 +141,8 @@ else:
         fileBytes += string.encode('ascii')
         fileBytes += b'\x00' * (maxStringLength - len(string))
 
+    if len(fileBytes) % 0x10 != 0:
+        fileBytes += b'\x00' * (0x10 - (len(fileBytes) % 0x10))
 
 for savePath in savePaths:
     with open(savePath, 'wb') as f:

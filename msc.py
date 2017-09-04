@@ -276,12 +276,12 @@ def _RepresentsInt(s):
     try:
         int(s, 0)
         return True
-    except ValueError:
+    except:
         return False
 
 globalAliases = {}
 
-def parseCommands(text, refs={}):
+def parseCommands(text, refs={}, mscStrings=[]):
     lines = text.replace(', ',',').split('\n')
     lines = [line.strip() for line in lines if line.strip() != '']
     lines = [line.split('#')[0] for line in lines if line.split('#')[0] != '']
@@ -303,8 +303,17 @@ def parseCommands(text, refs={}):
                 splitCommand[0] = splitCommand[0][0:-1]
             cmd.command = COMMAND_IDS[splitCommand[0]]
             currentPos += getSizeFromFormat(COMMAND_FORMAT[cmd.command]) + 1
-            if len(splitCommand) > 1:
+            if len(splitCommand) > 1 and not ((cmd.command == 0xA or cmd.command == 0xD) and splitCommand[1][0] == '"'):
                 cmd.parameters = [param for param in splitCommand[1].split(',')]
+            elif (cmd.command == 0xA or cmd.command == 0xD) and splitCommand[1][0] == '"':
+                printString = splitCommand[1][1:]
+                for s in splitCommand[2:]:
+                    printString += " "+s
+                if printString[-1] == '"':
+                    printString = printString[:-1]
+                cmd.parameters = [len(mscStrings)]
+                mscStrings.append(printString)
+
             cmds.append(cmd)
     labelNames = labels.keys()
     aliasNames = aliases.keys()
@@ -331,6 +340,9 @@ class Command:
         self.paramSize = 0
         self.commandPosition = 0
         self.debugString = None
+
+    def __len__(self):
+        return getSizeFromFormat(COMMAND_FORMAT[self.command]) + 1
 
     def read(self, byteBuffer, pos):
         self.command = int(byteBuffer[pos]) & 0x7F
@@ -430,9 +442,9 @@ class MscScript:
         return cmd[index].commandPosition
 
     def getCommand(self, location):
-        cmdIndex = getIndexOfInstruction(location)
+        cmdIndex = self.getIndexOfInstruction(location)
         if cmdIndex != None:
-            self.cmds[cmdIndex]
+            return self.cmds[cmdIndex]
         return None
 
     def offset(self, offset):
