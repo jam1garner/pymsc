@@ -92,9 +92,31 @@ def getVar(varType, varNum):
         print("ERROR: UNKNOWN VARIABLE TYPE %i AT LOCATION %X" % (varType, evalPos))
         raise ValueError
 
-def setVar(type, varNum, value):
+def setVar(varType, varNum, value):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
-    pass
+    if varType == 0: #(Local)
+        if localVarPos + varNum == 0x80:
+            stackPos = value
+        elif localVarPos + varNum < 0x80:
+            stack[localVarPos+varNum] = value
+        else:
+             print("WARNING: OOB WRITE OF LOCAL VAR %i AT LOCATION %X" % (varNum, evalPos))
+             print("         IS UNMAPPED IN EMULATOR MEMORY, THIS WRITE")
+             print("         WILL NOT HAVE HAPPENED MORE OR LESS")
+    elif varType == 1: #(global variable)
+        if varNum < 0x8A:
+            globalVars[varNum] = value
+        elif varNum >= 0x8A and varNum < 0x10A:
+            stack[varNum - 0x8A] = value
+        elif varNum == 0x10A:
+            stackPos = value
+        elif varNum > 0x10A:
+            print("WARNING: OOB READ OF GLOBAL VAR %i AT LOCATION %X" % (varNum, evalPos))
+            print("         IS UNMAPPED IN EMULATOR MEMORY, THIS WRITE")
+            print("         WILL NOT HAVE HAPPENED MORE OR LESS")
+    else:
+        print("ERROR: UNKNOWN VARIABLE TYPE %i AT LOCATION %X" % (varType, evalPos))
+        raise ValueError
 
 #Converts an int representing bytes to a float
 #Example 0x3F800000 -> 1.0
