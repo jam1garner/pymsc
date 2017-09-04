@@ -294,10 +294,10 @@ def evalCommand(command):
         v = intToFloat(pop())
         push(intToFloat(pop()) - v, pushBit)
     elif c == 0x3C:
-        push(intToFloat(pop()) + intToFloat(pop()), pushBit)
+        push(intToFloat(pop()) * intToFloat(pop()), pushBit)
     elif c == 0x3D:
         v = intToFloat(pop())
-        push(intToFloat(pop()) - v, pushBit)
+        push(intToFloat(pop()) / v, pushBit)
     elif c == 0x3E:
         push(-intToFloat(pop()), pushBit)
     elif c == 0x3F:
