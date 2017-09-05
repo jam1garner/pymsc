@@ -12,6 +12,32 @@ class FunctionInfo:
         localVarPos = self.localVarPos
         evalPos = returnAddress
 
+def syscall(syscallNum, args):
+    global sharedVars,evalPos
+    if syscallNum == 0x16:
+        operation = args[0]
+        if operation == 0x6:
+            if not args[1] in sharedVars:
+                print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
+                quit()
+            else:
+                push(sharedVars[args[1]])
+        elif operation == 0x7:
+            sharedVars[args[2]] = args[1]
+        elif operation == 0x10:
+            if not args[1] in sharedVars:
+                print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
+                quit()
+            else:
+                push(0 if sharedVars[args[1]] == 0 else 1)
+        elif operation == 0x2710:
+            sharedVars[args[1]] = 0
+        elif operation == 0x2711:
+            sharedVars[args[1]] = 1
+    else:
+        print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
+        quit()
+
 def push(val, actuallyPush=True):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
     if not actuallyPush:
@@ -93,7 +119,7 @@ def getVar(varType, varNum):
         print("ERROR: UNKNOWN VARIABLE TYPE %i AT LOCATION %X" % (varType, evalPos))
         raise ValueError
 
-def setVar(varType, varNum, value):
+def setVar(varType, varNum, value, pushBit):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
     if varType == 0: #(Local)
         if localVarPos + varNum == 0x80:
@@ -118,6 +144,8 @@ def setVar(varType, varNum, value):
     else:
         print("ERROR: UNKNOWN VARIABLE TYPE %i AT LOCATION %X" % (varType, evalPos))
         raise ValueError
+    if pushBit:
+        push(value)
 
 #Converts an int representing bytes to a float
 #Example 0x3F800000 -> 1.0
@@ -170,7 +198,7 @@ def evalCommand(command):
         if fInfo.returnAddress == None:
             executing = False
             return
-        localVarPos = fInfo.thisLocalVarPos
+        localVarPos = fInfo.localVarPos
         evalPos = fInfo.returnAddress
         isJump = True
     elif c in [0x4, 0x5, 0x36]:
@@ -181,7 +209,7 @@ def evalCommand(command):
         if fInfo.returnAddress == None:
             executing = False
             return
-        localVarPos = fInfo.thisLocalVarPos
+        localVarPos = fInfo.localVarPos
         evalPos = fInfo.returnAddress
         isJump = True
     elif c == 0x7 or c == 0x9: #return no value
@@ -189,12 +217,13 @@ def evalCommand(command):
         if fInfo.returnAddress == None:
             executing = False
             return
-        localVarPos = fInfo.thisLocalVarPos
+        localVarPos = fInfo.localVarPos
         evalPos = fInfo.returnAddress
         isJump = True
-    elif c == 0xA:
+    elif c == 0xA or c == 0xD:
         push(cParams[0], pushBit)
-    elif (c == 0xB or c == 0xD):
+    elif c == 0xB:
+        print(evalPos)
         push(getVar(cParams[0], cParams[1]), pushBit)
     elif c == 0xC:
         pass
@@ -213,9 +242,9 @@ def evalCommand(command):
     elif c == 0x13:
         push(-pop(), pushBit) #Negate value
     elif c == 0x14:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) + 1) #Var++
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) + 1,pushBit) #Var++
     elif c == 0x15:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) - 1) #Var--
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) - 1,pushBit) #Var--
     elif c == 0x16:
         push(pop() & pop(), pushBit)#bitAnd
     elif c == 0x17:
@@ -231,23 +260,23 @@ def evalCommand(command):
         shiftBy = pop()
         push(pop() >> shiftBy, pushBit)#rightShift
     elif c == 0x1C:
-        setVar(cParams[0], cParams[1], pop()) #setVar
+        setVar(cParams[0], cParams[1], pop(),pushBit) #setVar
     elif c == 0x1D:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) + pop()) #Var +=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) + pop(),pushBit) #Var +=
     elif c == 0x1E:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) - pop()) #Var -=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) - pop(),pushBit) #Var -=
     elif c == 0x1F:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) * pop()) #Var *=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) * pop(),pushBit) #Var *=
     elif c == 0x20:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) / pop()) #Var /=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) / pop(),pushBit) #Var /=
     elif c == 0x21:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) % pop()) #Var %=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) % pop(),pushBit) #Var %=
     elif c == 0x22:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) & pop()) #Var &=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) & pop(),pushBit) #Var &=
     elif c == 0x23:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) | pop()) #Var |=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) | pop(),pushBit) #Var |=
     elif c == 0x24:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) ^ pop()) #Var ^=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) ^ pop(),pushBit) #Var ^=
     elif c == 0x25:
         push(int(pop() == pop()), pushBit) #equals
     elif c == 0x26:
@@ -273,8 +302,10 @@ def evalCommand(command):
             formatValues.insert(0, pop())
         printf(formatString, formatValues)
     elif c == 0x2D:
-        args = tuple([cParams[1]] + [pop() for i in range(cParams[0])]) #syscall
-        print(("Syscall %X args: ["+("%X, " * len(args))+"]") % args)
+        args = []
+        for i in range(cParams[0]):
+            args.insert(0, pop())
+        syscall(cParams[1], args)
     elif c == 0x2E:
         exceptionRegister = cParams[0]
     elif c in [0x2F, 0x30, 0x31]:
@@ -283,7 +314,8 @@ def evalCommand(command):
         #paramList = [pop() for i in range(cParams[0])]
         hitException = False
         if c == 0x2F:
-            if mscFile.getScriptAtLocation(evalPos).getCommand(evalPos).command != 0x2:
+            gottenScript = mscFile.getScriptAtLocation(jumpPos)
+            if gottenScript == None or gottenScript.getCommand(jumpPos).command != 0x2:
                 print("WARNING: at %X invalid function call, jumping to exception register (%X)" % (evalPos, exceptionRegister))
                 evalPos = exceptionRegister
                 hitException = True
@@ -327,19 +359,19 @@ def evalCommand(command):
     elif c == 0x3E:
         push(-intToFloat(pop()), pushBit)
     elif c == 0x3F:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) + 1)) #float Var++
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) + 1),pushBit) #float Var++
     elif c == 0x40:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) - 1)) #float Var--
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) - 1),pushBit) #float Var--
     elif c == 0x41:
-        setVar(cParams[0], cParams[1], pop()) #setFloatVar
+        setVar(cParams[0], cParams[1], pop(), pushBit) #setFloatVar
     elif c == 0x42:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) + intToFloat(pop()))) #float Var+=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) + intToFloat(pop())),pushBit) #float Var+=
     elif c == 0x43:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) - intToFloat(pop()))) #float Var-=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) - intToFloat(pop())),pushBit) #float Var-=
     elif c == 0x44:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) * intToFloat(pop()))) #float Var+=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) * intToFloat(pop())),pushBit) #float Var+=
     elif c == 0x45:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) / intToFloat(pop()))) #float Var-=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) / intToFloat(pop())),pushBit) #float Var-=
     elif c == 0x46:
         compTo = intToFloat(pop())
         push(int(intToFloat(pop()) > compTo), pushBit)
@@ -413,7 +445,7 @@ def evalText():
     evalMscFile(mscFile)
 
 def main():
-    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
+    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister,sharedVars
     mscFile = None
     mscFileBytes = None
     stack = [None] * 0x80
@@ -426,6 +458,7 @@ def main():
     globalVars = [None] * 0x8A #Note a lot of this is actually unused but is simulated for exploitation
     executing = False
     strings = []
+    sharedVars = {}
     if len(argv) > 1:
         evalFile(argv[1])
     else:
