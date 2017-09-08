@@ -16,7 +16,7 @@ class FunctionInfo:
 def syscall(syscallNum, args, pushBit):
     global sharedVars,evalPos
     if syscallNum == 0x9:
-        randint(args[0],args[1])
+        push(randint(args[0], args[1]-1), pushBit)
     elif syscallNum == 0x16:
         operation = args[0]
         if operation == 0x6:
