@@ -6,12 +6,8 @@ scriptNames = {}
 scriptOffsets = []
 
 gvIsOffset = [False for i in range(64)]
-for gv in range(11,17):
+for gv in list(range(11,17)) + [21,22,23,27,30,35,36,43,44]:
     gvIsOffset[gv] = True
-gvIsOffset[21] = True
-gvIsOffset[22] = True
-gvIsOffset[23] = True
-gvIsOffset[35] = True
 
 def updateScriptReference(popped, index, scriptName):
     global scriptCalledVars

@@ -2,6 +2,7 @@ from msc import *
 import struct
 from sys import argv
 from time import sleep
+from random import randint
 
 class FunctionInfo:
     def __init__(self, thisLocalVarPos, returnAddress):
@@ -12,16 +13,18 @@ class FunctionInfo:
         localVarPos = self.localVarPos
         evalPos = returnAddress
 
-def syscall(syscallNum, args):
+def syscall(syscallNum, args, pushBit):
     global sharedVars,evalPos
-    if syscallNum == 0x16:
+    if syscallNum == 0x9:
+        randint(args[0],args[1])
+    elif syscallNum == 0x16:
         operation = args[0]
         if operation == 0x6:
             if not args[1] in sharedVars:
                 print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
                 quit()
             else:
-                push(sharedVars[args[1]])
+                push(sharedVars[args[1]], pushBit)
         elif operation == 0x7:
             sharedVars[args[2]] = args[1]
         elif operation == 0x10:
@@ -29,7 +32,7 @@ def syscall(syscallNum, args):
                 print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
                 quit()
             else:
-                push(0 if sharedVars[args[1]] == 0 else 1)
+                push(0 if sharedVars[args[1]] == 0 else 1, pushBit)
         elif operation == 0x2710:
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
@@ -305,7 +308,7 @@ def evalCommand(command):
         args = []
         for i in range(cParams[0]):
             args.insert(0, pop())
-        syscall(cParams[1], args)
+        syscall(cParams[1], args, pushBit)
     elif c == 0x2E:
         exceptionRegister = cParams[0]
     elif c in [0x2F, 0x30, 0x31]:
