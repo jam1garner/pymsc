@@ -138,7 +138,7 @@ else:
         fileBytes += b'\x00' * (0x10 - (len(fileBytes) % 0x10))
 
     for string in strings:
-        fileBytes += string.encode('ascii')
+        fileBytes += string.encode('utf-8')
         fileBytes += b'\x00' * (maxStringLength - len(string))
 
     if len(fileBytes) % 0x10 != 0:
