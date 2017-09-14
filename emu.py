@@ -226,7 +226,6 @@ def evalCommand(command):
     elif c == 0xA or c == 0xD:
         push(cParams[0], pushBit)
     elif c == 0xB:
-        print(evalPos)
         push(getVar(cParams[0], cParams[1]), pushBit)
     elif c == 0xC:
         pass
