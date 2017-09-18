@@ -40,7 +40,7 @@ COMMAND_NAMES = {
     0x23 : "i|=",
     0x24 : "i^=",
     0x25 : "equals",
-    0x26 : "notEqual",
+    0x26 : "notEquals",
     0x27 : "lessThan",
     0x28 : "lessOrEqual",
     0x29 : "greater",
