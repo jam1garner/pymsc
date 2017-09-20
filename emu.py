@@ -38,7 +38,7 @@ def syscall(syscallNum, args, pushBit):
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
-    elif syscallNum == 0xFF00:
+    elif syscallNum == 0xF0:
         print("Stack [Position = %i] - %s" % (stackPos, str(stack)))
     else:
         print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
