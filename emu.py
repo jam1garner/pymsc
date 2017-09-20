@@ -15,7 +15,7 @@ class FunctionInfo:
 
 #Simulate an MSC syscall given the information from 
 def syscall(syscallNum, args, pushBit):
-    global sharedVars,evalPos
+    global sharedVars,evalPos,stack
     if syscallNum == 0x9:
         push(randint(args[0], args[1]-1), pushBit)
     elif syscallNum == 0x16:
@@ -38,6 +38,8 @@ def syscall(syscallNum, args, pushBit):
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
+    elif syscallNum == 0xFF00:
+        print("Stack [Position = %i] - %s" % (stackPos, str(stack)))
     else:
         print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
         quit()
@@ -422,6 +424,7 @@ def evalFile(filepath):
     evalMscFile(mscFile)
 
 def evalText():
+    global stack, stackPos
     mscFile = MscFile()
     strs = []
     scriptString = ""
@@ -433,6 +436,7 @@ def evalText():
     while nextLine.strip().lower() != "end":
         scriptString += nextLine + "\n"
         nextLine = input("> ")
+    scriptString += nextLine
     print("------------------------------------------------")
     scr = MscScript()
     cmds = parseCommands(scriptString, mscStrings=strs)
@@ -446,6 +450,15 @@ def evalText():
     mscFile.entryPoint = 0x10
     mscFile.strings = strs
     mscFile.scripts.append(scr)
+    if scr[0].command == 0x2 and scr[0].parameters[0] > 0:
+        stackPos = scr[0].parameters[0]
+        print('Input %i parameter(s)' % scr[0].parameters[0])
+        for i in range(scr[0].parameters[0]):
+            p = input('Input parameter %i: ' % i).strip()
+            if p[-1] == 'f':
+                stack[i] = int(floatToInt(float(p[0 : len(p)-1])))
+            else:
+                stack[i] = int(p, 0)
     evalMscFile(mscFile)
 
 def main():
