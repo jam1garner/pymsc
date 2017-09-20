@@ -50,6 +50,7 @@ COMMAND_IDS = {
     "printf"         : 0x2c,
     "sys"            : 0x2d,
     "try"            : 0x2e,
+    "unk_2E"         : 0x2e,
     "callFunc"       : 0x2f,
     "callFunc2"      : 0x30,
     "callFunc3"      : 0x31,

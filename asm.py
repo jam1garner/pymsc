@@ -74,7 +74,7 @@ else:
     entrypoint = 'script_0'
 
     for i,script in enumerate(scriptPaths):
-        if script[:1] == ":":
+        if script[0] == ":":
             script = script[1:]
             scriptPaths[i] = script
             entrypoint = 'script_%i' % i
@@ -87,12 +87,14 @@ else:
         with open(script, 'r') as f:
             tempScript = MscScript()
             tempScript.cmds = parseCommands(f.read(), mscStrings=strings)
+            tempScript.name = script
             scripts.append(tempScript)
 
     scriptPositions = {}
     currentPos = 0x10
     for i,script in enumerate(scripts):
         scriptPositions['script_%i' % i] = currentPos
+        scriptPositions[script.name[:script.name.find('.')]] = currentPos 
         currentPos += script.size()
 
     scriptNames = scriptPositions.keys()
