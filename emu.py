@@ -13,6 +13,7 @@ class FunctionInfo:
         localVarPos = self.localVarPos
         evalPos = returnAddress
 
+#Simulate an MSC syscall given the information from 
 def syscall(syscallNum, args, pushBit):
     global sharedVars,evalPos
     if syscallNum == 0x9:
@@ -41,6 +42,7 @@ def syscall(syscallNum, args, pushBit):
         print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
         quit()
 
+#push a value onto the stack given that the push bit is enabled
 def push(val, actuallyPush=True):
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
     if not actuallyPush:
