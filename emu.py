@@ -39,6 +39,12 @@ def syscall(syscallNum, args, pushBit):
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
     elif syscallNum == 0xF0:
+        stackString = "["
+        for i in range(len(stack)):
+            if stack[i] != None:
+                stackString += ('*' if i == stackPos else '') + hex(stack[i]) + (', ' if i != len(stack) - 1 else '')
+        if stackString != "[":
+            stackString = stackString[:-2]
         print("Stack [Position = %i] - %s" % (stackPos, str(stack)))
     else:
         print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
@@ -432,7 +438,7 @@ def evalText():
     print("|  Text interpreter - Type in your script.     |")
     print("|  Script input will stop after you type 'end' |")
     print("+----------------------------------------------+")
-    nextLine = input("> ")
+    nextLine = input()
     while nextLine.strip().lower() != "end":
         scriptString += nextLine + "\n"
         nextLine = input("> ")
