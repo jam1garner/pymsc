@@ -1,3 +1,9 @@
+#**************************************************************************#
+# This file is part of pymsc which is released under MIT License. See file #
+# LICENSE or go to https://github.com/jam1garner/pymsc/blob/master/LICENSE #
+# for full license details.                                                #
+#**************************************************************************#
+
 import struct, tempfile
 
 MSC_MAGIC = b'\xB2\xAC\xBC\xBA\xE6\x90\x32\x01\xFD\x02\x00\x00\x00\x00\x00\x00'

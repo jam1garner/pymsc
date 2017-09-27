@@ -1,3 +1,8 @@
+#**************************************************************************#
+# This file is part of pymsc which is released under MIT License. See file #
+# LICENSE or go to https://github.com/jam1garner/pymsc/blob/master/LICENSE #
+# for full license details.                                                #
+#**************************************************************************#
 from msc import *
 from sys import argv
 from os.path import isfile
