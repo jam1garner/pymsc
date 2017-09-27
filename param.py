@@ -95,7 +95,7 @@ class Group(list):
             j += (self.entry(i)[:newSize] + ([None] * (newSize - entrySize)))
         self.clear()
         for i in j:
-	        self.append(i)
+            self.append(i)
 
     def entries(self):
         l = []
@@ -104,7 +104,7 @@ class Group(list):
         return l
 
     def deleteEntry(self, i):
-    	if self.entryCount == 0:
+        if self.entryCount == 0:
             return
         entrySize = int((len(self) / self.entryCount) + 0.5)
         del self[i * entrySize : (i+1) * entrySize]

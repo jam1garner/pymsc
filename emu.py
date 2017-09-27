@@ -3,11 +3,15 @@
 # LICENSE or go to https://github.com/jam1garner/pymsc/blob/master/LICENSE #
 # for full license details.                                                #
 #**************************************************************************#
-from msc import *
 import struct
 from sys import argv
+from msc import *
+from param import *
 from time import sleep
 from random import randint
+from os.path import isfile
+from argparse import ArgumentParser
+
 
 class FunctionInfo:
     def __init__(self, thisLocalVarPos, returnAddress):
@@ -43,6 +47,13 @@ def syscall(syscallNum, args, pushBit):
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
+    elif syscallNum == 0x17:
+        if operation == 0x0:
+            if not args[1] in sharedVars:
+                print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
+                quit()
+            else:
+                push(sharedVars[args[1]], pushBit)
     elif syscallNum == 0xF0:
         stackString = "["
         for i in range(len(stack)):
@@ -176,7 +187,7 @@ def floatToInt(val):
     return struct.unpack('>L', struct.pack('>f', val))[0]
 
 def printf(printString, args):
-    specifierLocs = [i for i,j in enumerate(printString) if j == '%' and i < len(printString) and printString[i+1] in ['X', 'i', 'f', '0']]
+    specifierLocs = [i for i,j in enumerate(printString) if j == '%' and i < len(printString) and printString[i+1] in ['x', 'X', 'i', 'f', '0']]
     for i,j in enumerate(specifierLocs):
         if printString[j+1] == 'f':
             args[i] = intToFloat(args[i])
@@ -446,7 +457,7 @@ def evalText():
     nextLine = input()
     while nextLine.strip().lower() != "end":
         scriptString += nextLine + "\n"
-        nextLine = input("> ")
+        nextLine = input()
     scriptString += nextLine
     print("------------------------------------------------")
     scr = MscScript()
@@ -472,6 +483,30 @@ def evalText():
                 stack[i] = int(p, 0)
     evalMscFile(mscFile)
 
+def load_fighter_param_common(filepath):
+    global sharedVars
+    p = openParam(filepath)
+    for i in range(len(p)):
+        val = p[i]
+        if isinstance(val, f32):
+            val = floatToInt(val)
+        elif not True in [isinstance(val, t) for t in [u8, s8, u16, s16, u32, s32]]:
+            continue
+        sharedVars[0x12000000 + i] = int(val)
+        sharedVars[0x02000000 + i] = int(val)
+
+def load_fighter_param(filepath):
+    global sharedVars
+    p = openParam(filepath)
+    for i in range(len(p[0])):
+        val = p[0][i]
+        if isinstance(val, f32):
+            val = floatToInt(val)
+        elif not True in [isinstance(val, t) for t in [u8, s8, u16, s16, u32, s32]]:
+            continue
+        sharedVars[0x13000000 + i] = int(val)
+        sharedVars[0x03000000 + i] = int(val)
+
 def main():
     global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister,sharedVars
     mscFile = None
@@ -487,10 +522,24 @@ def main():
     executing = False
     strings = []
     sharedVars = {}
-    if len(argv) > 1:
-        evalFile(argv[1])
+    #Parse arguments
+    parse = ArgumentParser(description="Emulate MSC bytecode")
+    parse.add_argument("--fighter_param_common", action="store", dest="fighter_param_common", help="Path of fighter_param_common to load")
+    parse.add_argument("--fighter_param", action="store", dest="fighter_param", help="Path of fighter_param to load")
+    parse.add_argument("mscFile", nargs='?', type=str, help="MSC File to emulate")
+    args = parse.parse_args()
+
+    if args.fighter_param != None and isfile(args.fighter_param):
+        print("loading fighter_param")
+        load_fighter_param(args.fighter_param)
+
+    if args.fighter_param_common != None and isfile(args.fighter_param_common):
+        load_fighter_param_common(args.fighter_param_common)
+
+    if args.mscFile == None:
+        evalText()
     else:
-        evalText() #Go to text evaluation
+        evalFile(arg.mscFile)
 
 if __name__ == '__main__':
     main()
