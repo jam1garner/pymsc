@@ -25,8 +25,11 @@ class FunctionInfo:
 #Simulate an MSC syscall given the information from 
 def syscall(syscallNum, args, pushBit):
     global sharedVars,evalPos,stack
+    #Random int in range
     if syscallNum == 0x9:
         push(randint(args[0], args[1]-1), pushBit)
+    
+    #Variable access
     elif syscallNum == 0x16:
         operation = args[0]
         if operation == 0x6:
@@ -47,21 +50,36 @@ def syscall(syscallNum, args, pushBit):
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
+
+    #Variable access
     elif syscallNum == 0x17:
+        operation = args[0]
         if operation == 0x0:
             if not args[1] in sharedVars:
                 print("ERROR: Variable 0x%08X doesn't not exist (Accessed at %X)" % (args[1],evalPos))
                 quit()
             else:
                 push(sharedVars[args[1]], pushBit)
+
+    #Debug stack dump
     elif syscallNum == 0xF0:
-        stackString = "["
+        stackString = "DEBUG: ["
         for i in range(len(stack)):
             if stack[i] != None:
                 stackString += ('*' if i == stackPos else '') + hex(stack[i]) + (', ' if i != len(stack) - 1 else '')
         if stackString != "[":
             stackString = stackString[:-2]
         print("Stack [Position = %i] - %s" % (stackPos, str(stack)))
+
+    #Debug var print
+    elif syscallNum == 0xF1:
+        if len(args) == 0:
+            l = tuple(["0x%08X : 0x%08X, " % (i,j) for i,j in sharedVars.items()])
+            print('DEBUG: {' + (('%s' * len(l)) % l).rstrip(', ') + '}')
+        else:
+            if args[0] in sharedVars:
+                print("DEBUG: 0x%08X = 0x%08X" % (args[0], sharedVars[args[0]]))
+
     else:
         print("ERROR: Unsupported syscall 0x%X at location %X" % (syscallNum,evalPos))
         quit()
@@ -495,11 +513,11 @@ def load_fighter_param_common(filepath):
         sharedVars[0x12000000 + i] = int(val)
         sharedVars[0x02000000 + i] = int(val)
 
-def load_fighter_param(filepath):
+def load_fighter_param(filepath, entry):
     global sharedVars
-    p = openParam(filepath)
-    for i in range(len(p[0])):
-        val = p[0][i]
+    p = openParam(filepath)[0].entry(entry)
+    for i in range(len(p)):
+        val = p[i]
         if isinstance(val, f32):
             val = floatToInt(val)
         elif not True in [isinstance(val, t) for t in [u8, s8, u16, s16, u32, s32]]:
@@ -526,12 +544,21 @@ def main():
     parse = ArgumentParser(description="Emulate MSC bytecode")
     parse.add_argument("--fighter_param_common", action="store", dest="fighter_param_common", help="Path of fighter_param_common to load")
     parse.add_argument("--fighter_param", action="store", dest="fighter_param", help="Path of fighter_param to load")
+    parse.add_argument("--character", action="store", dest="character", help="Name of character to load from fighter_param")
+    parse.add_argument("--character_list", action="store_true", dest="charLS", help="List character names")
     parse.add_argument("mscFile", nargs='?', type=str, help="MSC File to emulate")
     args = parse.parse_args()
 
-    if args.fighter_param != None and isfile(args.fighter_param):
+
+    charIds = {'miienemyf': 62, 'miienemys': 63, 'miienemyg': 64, 'littlemacg': 60, 'mariod': 36, 'pikmin': 26, 'sheik': 17, 'roy': 54, 'yoshi': 7, 'duckhunt': 45, 'koopajr': 46, 'pit': 24, 'metaknight': 23, 'cloud': 55, 'miifighter': 0, 'miiswordsman': 1, 'miigunner': 2, 'wiifit': 40, 'pacman': 49, 'gamewatch': 19, 'peach': 14, 'robot': 31, 'rockman': 50, 'fox': 9, 'zelda': 16, 'bayonetta': 56, 'purin': 35, 'donkey': 4, 'shulk': 47, 'ryu': 52, 'toonlink': 32, 'sonic': 34, 'lucariom': 61, 'lizardon': 33, 'littlemac': 41, 'kirby': 8, 'pikachu': 10, 'murabito': 42, 'ness': 13, 'palutena': 43, 'diddy': 27, 'mario': 3, 'wario': 22, 'link': 5, 'ike': 29, 'rosetta': 39, 'samus': 6, 'falcon': 12, 'mewtwo': 51, 'lucas': 53, 'ganon': 20, 'koopag': 58, 'gekkouga': 48, 'dedede': 28, 'pitb': 38, 'lucina': 37, 'warioman': 59, 'marth': 18, 'szerosuit': 25, 'koopa': 15, 'kamui': 57, 'lucario': 30, 'luigi': 11, 'reflet': 44, 'falco': 21}
+
+    if args.charLS:
+        print(list(charIds.keys()))
+        quit()
+
+    if args.fighter_param != None and isfile(args.fighter_param) and args.character in charIds:
         print("loading fighter_param")
-        load_fighter_param(args.fighter_param)
+        load_fighter_param(args.fighter_param, charIds[args.character])
 
     if args.fighter_param_common != None and isfile(args.fighter_param_common):
         load_fighter_param_common(args.fighter_param_common)
