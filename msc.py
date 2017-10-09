@@ -3,7 +3,9 @@
 # LICENSE or go to https://github.com/jam1garner/pymsc/blob/master/LICENSE #
 # for full license details.                                                #
 #**************************************************************************#
-
+from sys import version_info
+isPython3 = version_info >= (3,)
+assert isPython3 #If this fails switch to python 3
 import struct, tempfile
 
 MSC_MAGIC = b'\xB2\xAC\xBC\xBA\xE6\x90\x32\x01\xFD\x02\x00\x00\x00\x00\x00\x00'
