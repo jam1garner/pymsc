@@ -585,7 +585,7 @@ class MscFile:
             for i in range(len(script)):
                 try:
                     if script[i].command == 0x2C and script[i].parameters[0] > 0:
-                        script[i].debugString = self.strings[script[i-script[i].parameters[0]].parameters[0]]
+                        script[i].debugString = self.strings[script[i-1].parameters[0]]
                 except:
                     script[i].debugString = None
 
