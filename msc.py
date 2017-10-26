@@ -770,7 +770,10 @@ class MscFile:
                         elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_16": # action
                             if _RepresentsInt(script[i-2].parameters[0]):
                                 actionID = hex(script[i-2].parameters[0])
-                                script[i].debugString = "call action {}, ID {}".format(actionDict[actionID], actionID)
+                                if actionID in actionDict:
+                                    script[i].debugString = "call action {}, ID {}".format(actionDict[actionID], actionID)
+                                else:
+                                    script[i].debugString = "call action ID {}".format(actionID)
                         elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_22": # animation
                             if _RepresentsInt(script[i-3].parameters[0]):
                                 animationID = hex(script[i-3].parameters[0])
