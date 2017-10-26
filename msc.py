@@ -98,7 +98,7 @@ COMMAND_NAMES = {}
 for k, v in COMMAND_IDS.items():
     if not v in COMMAND_NAMES:
         COMMAND_NAMES[v] = k
-        
+
 COMMAND_FORMAT = {
     0x0 : '',
     0x2 : 'HH',
@@ -580,12 +580,56 @@ class MscFile:
             if script.bounds[0] <= location and script.bounds[1] > location:
                 return script
 
+    def parseParameterForVariable(self, parameter):
+        strHexValue = str(hex(parameter))
+        if len(strHexValue) == len("0x10xxxxxx"): # if basic or bit
+            mostSignificantBytes = strHexValue[2:4]
+            decimalID = int(strHexValue[4:], 16)
+            if mostSignificantBytes == "10":
+                return "LA-Basic[{}]".format(decimalID)
+            if mostSignificantBytes == "11":
+                return "RA-Basic[{}]".format(decimalID)
+            if mostSignificantBytes == "12":
+                return "fighter_param_common-Basic[{}]".format(decimalID)
+            if mostSignificantBytes == "13":
+                return "fighter_param-Basic[{}]".format(decimalID)
+            if mostSignificantBytes == "20":
+                return "LA-Bit[{}]".format(decimalID)
+            if mostSignificantBytes == "21":
+                return "RA-Bit[{}]".format(decimalID)
+        elif len(strHexValue) == len("0x1xxxxxx"): # if float
+            mostSignificantByte = strHexValue[2:3]
+            decimalID = int(strHexValue[3:], 16)
+            if mostSignificantByte == "10":
+                return "LA-Float[{}]".format(decimalID)
+            if mostSignificantByte == "11":
+                return "RA-Float[{}]".format(decimalID)
+            if mostSignificantByte == "2":
+                return "fighter_param_common-Float[{}]".format(decimalID)
+            if mostSignificantByte == "3":
+                return "fighter_param-Float[{}]".format(decimalID)
+        return None
+
     def addDebugStrings(self):
         for script in self.scripts:
             for i in range(len(script)):
                 try:
-                    if script[i].command == 0x2C and script[i].parameters[0] > 0:
+                    if script[i].command == 0x2C and script[i].parameters[0] > 0: # if printf
                         script[i].debugString = self.strings[script[i-1].parameters[0]]
+                    elif script[i].command == 0xa: # if pushInt
+                        currentFirstParameter = script[i].parameters[0]
+                        if (len(str(hex(currentFirstParameter))) == len("0x10xxxxxx") or len(str(hex(currentFirstParameter))) == len("0x1xxxxxx")):
+                            variableString = self.parseParameterForVariable(currentFirstParameter)
+                            if variableString != None:
+                                script[i].debugString = variableString
+                        elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_16": # action
+                            if _RepresentsInt(script[i-2].parameters[0]):
+                                actionID = hex(script[i-2].parameters[0])
+                                script[i].debugString = "call action {}, ID {}".format(actionDict[actionID], actionID)
+                        elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_22": # animation
+                            if _RepresentsInt(script[i-3].parameters[0]):
+                                animationID = hex(script[i-3].parameters[0])
+                                script[i].debugString = "call animation ID {}".format(animationID)
                 except:
                     script[i].debugString = None
 
