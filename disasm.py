@@ -139,6 +139,92 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
         raise
     return True
 
+def addComments(script):
+    for i in range(len(script)):
+        try:
+            if script[i].command == 0xa: # if pushInt
+                parameter = script[i].parameters[0]
+                isBitOrBasicMask = 0xF0000000
+                isFloatMask = 0xF000000
+                extractMSBMask = 0xFF000000
+                extractDecimalIDMask = 0xFFFFFF
+                if parameter & isBitOrBasicMask: # if basic or bit
+                    mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 6)
+                    decimalID = parameter & extractDecimalIDMask
+                    if mostSignificantBytes == int('10',16):
+                        script[i].debugString = "LA-Basic {}".format(decimalID)
+                    elif mostSignificantBytes == int('11',16):
+                        script[i].debugString = "RA-Basic {}".format(decimalID)
+                    elif mostSignificantBytes == int('12',16):
+                        script[i].debugString = "fighter_param_common-Basic {}".format(decimalID)
+                    elif mostSignificantBytes == int('13',16):
+                        script[i].debugString = "fighter_param-Basic {}".format(decimalID)
+                    elif mostSignificantBytes == int('20',16):
+                        script[i].debugString = "LA-Bit {}".format(decimalID)
+                    elif mostSignificantBytes == int('21',16):
+                        script[i].debugString = "RA-Bit {}".format(decimalID)
+                elif parameter & isFloatMask: # if float
+                    mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 5)
+                    extractDecimalIDMask = 0xFFFFF
+                    decimalID = parameter & extractDecimalIDMask
+                    if mostSignificantBytes == int('10',16):
+                        script[i].debugString = "LA-Float {}".format(decimalID)
+                    elif mostSignificantBytes == int('11',16):
+                        script[i].debugString = "RA-Float {}".format(decimalID)
+                    elif mostSignificantBytes == int('20',16):
+                        script[i].debugString = "fighter_param_common-Float {}".format(decimalID)
+                    elif mostSignificantBytes == int('30',16):
+                        script[i].debugString = "fighter_param-Float {}".format(decimalID)
+                elif isinstance(parameter, str) and parameter == "script_16": # action
+                    if _RepresentsInt(script[i-2].parameters[0]):
+                        actionID = script[i-2].parameters[0]
+                        actionCSVRealPath = os.path.join(sys.path[0], "actions.csv")
+                        with open(actionCSVRealPath) as actionsFile:
+                            lines = actionsFile.readlines()
+                        
+                        if not lines[actionID].startswith("unk"):
+                            script[i].debugString = "call action {}".format(lines[actionID][:-1])
+                        else:
+                            script[i].debugString = "call action {}".format(hex(actionID))
+                elif isinstance(parameter, str) and parameter == "script_22": # animation
+                    if _RepresentsInt(script[i-3].parameters[0]):
+                        animationID = hex(script[i-3].parameters[0])
+                        script[i].debugString = "call animation {}".format(animationID)
+            if script[i].command == 0x16: # if bitAnd
+                if script[i-1].command == 0xa and script[i-2].command == 0xb:
+                    if script[i-2].parameters[0] == 1: # must be global
+                        ANDMask = script[i-1].parameters[0]
+                        VarID = script[i-2].parameters[1]
+                        if VarID == int('0x26',16):
+                            if ANDMask == int('0x10',16):
+                                script[i].debugString = "if X/Y is pressed"
+                            elif ANDMask == int('0x1',16):
+                                script[i].debugString = "if A is pressed"
+                            elif ANDMask == int('0x4',16):
+                                script[i].debugString = "if B is pressed"
+                            elif ANDMask == int('0x40',16):
+                                script[i].debugString = "if L/R is pressed"
+                        elif VarID == int('0x18',16):
+                            if ANDMask == int('0x100000',16):
+                                script[i].debugString = "if stick held up"
+                            elif ANDMask == int('0x20000000',16):
+                                script[i].debugString = "if Z is pressed"
+                        elif VarID == int('0x1f',16):
+                            if ANDMask == int('0x10000',16):
+                                script[i].debugString = "if stick held down"
+                            elif ANDMask == int('0x4000',16):
+                                script[i].debugString = "if stick held backward"
+                            elif ANDMask == int('0x8000',16):
+                                script[i].debugString = "if stick held forward"
+                            elif ANDMask == int('0x2',16):
+                                script[i].debugString = "if D-Pad Up"
+                            elif ANDMask == int('0x4',16):
+                                script[i].debugString = "if D-Pad Down"
+                            elif ANDMask == int('0x1',16):
+                                script[i].debugString = "if D-Pad Left/Right"
+        except:
+            script[i].debugString = None
+
 def main():
     global clearedPaths,scriptCalledVars
 
@@ -185,6 +271,8 @@ def main():
         for i,script in enumerate(mscFile):
             clearedPaths = []
             emuScript(script, 0, [], 2)
+            if args.assumeCharStd:
+                addComments(script)
 
             scriptPrinted = False
             for j,comm in enumerate(script):
