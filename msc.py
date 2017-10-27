@@ -98,7 +98,7 @@ COMMAND_NAMES = {}
 for k, v in COMMAND_IDS.items():
     if not v in COMMAND_NAMES:
         COMMAND_NAMES[v] = k
-
+        
 COMMAND_FORMAT = {
     0x0 : '',
     0x2 : 'HH',
@@ -265,151 +265,6 @@ TYPE_SIZES = {
     'B' : 1,
     'H' : 2,
     'I' : 4
-}
-
-actionDict = {0x0 : "Wait",
-0x1 : "Walk",
-0x2 : "WalkBrake",
-0x3 : "Dash",
-0x4 : "Run",
-0x5 : "RunBrake",
-0x6 : "Turn1",
-0x7 : "Turn2",
-0x8 : "TurnRun",
-0x9 : "TurnRunBrake",
-0xa : "Jumpsquat",
-0xb : "JumpF/JumpB",
-0xc : "JumpAerial",
-0xd : "JumpAerial2",
-0xe : "Fall",
-0xf : "FallAerial",
-0x10 : "SpecialFall",
-0x11 : "Squat",
-0x12 : "SquatWait",
-0x13 : "SqautF",
-0x14 : "SqautB",
-0x15 : "SquatRv",
-0x16 : "LandingHeavy",
-0x17 : "LandingLight",
-0x18 : "LandingAirN/F/B/Hi/Lw",
-0x19 : "LandingFallSpecial",
-0x1a : "LandingHeavy?",
-0x1b : "GuardOn",
-0x1c : "Guard",
-0x1d : "GuardOff",
-0x1e : "GuardDamage",
-0x1f : "EscapeN",
-0x20 : "EscapeF",
-0x21 : "EscapeB",
-0x22 : "EscapeAir",
-0x23 : "Rebound?",
-0x24 : "Rebound",
-0x25 : "Attack11",
-0x26 : "Attack100",
-0x27 : "AttackDash",
-0x28 : "AttackS3",
-0x29 : "AttackHi3",
-0x2a : "AttackLw3",
-0x2b : "AttackS4Start",
-0x2c : "AttackS4Hold",
-0x2d : "AttackS4",
-0x2e : "AttackLw4Start",
-0x2f : "AttackLw4Hold",
-0x30 : "AttackLw4",
-0x31 : "AttackHi4Start",
-0x32 : "AttackHi4Hold",
-0x33 : "AttackHi4",
-0x34 : "AttackAirN/F/B/Hi/Lw",
-0x35 : "Catch",
-0x36 : "CatchWait",
-0x37 : "CatchDash",
-0x38 : "CatchWait?",
-0x39 : "CatchTurn",
-0x3a : "CatchWait?",
-0x3b : "CatchAttack",
-0x3c : "CatchCut",
-0x3d : "CatchCut?",
-0x3e : "ThrowF/B/Hi/Lw",
-0x3f : "CapturePullHi/Lw",
-0x40 : "CaptureWait",
-0x41 : "CaptureDamage",
-0x42 : "CaptureCut",
-0x43 : "CaptureJump",
-0x46 : "Damage",
-0x47 : "DamageFly",
-0x48 : "DamageFlyRoll",
-0x49 : "WallDamage",
-0x4a : "CeilingDamage",
-0x4b : "DamageFlyTop?",
-0x4c : "DamageFall",
-0x4d : "DownBound",
-0x50 : "DownWait",
-0x51 : "DownWait",
-0x52 : "DownEat",
-0x53 : "DownWait",
-0x54 : "DownStand",
-0x55 : "DownForward/Back",
-0x56 : "DownAttack",
-0x57 : "DownDamage",
-0x59 : "ShieldBreak",
-0x5a : "ShieldBreakTumble",
-0x5b : "DownFuraFura",
-0x5c : "FuraFuraStart",
-0x5d : "FuraFura",
-0x5e : "FuraFuraEnd",
-0x60 : "FuraSleepLoop",
-0x64 : "Passive",
-0x65 : "PassiveStandF",
-0x66 : "PassiveStandB",
-0x67 : "PassiveWallJump",
-0x68 : "PassiveWall",
-0x69 : "PassiveCeil",
-0x6b : "WallJump",
-0x6c : "WallCling",
-0x71 : "Pass",
-0x72 : "CliffCatch",
-0x73 : "CliffCatch",
-0x74 : "CliffWait",
-0x75 : "CliffAttackQuick",
-0x76 : "CliffClimbQuick",
-0x77 : "CliffEscapeQuick",
-0x78 : "CliffJumpQuick1",
-0x79 : "CliffJumpQuick2",
-0x7a : "CliffJumpQuick2?",
-0x7b : "Ottotto",
-0x7c : "OttottoWait",
-0x7d : "MissFoot",
-0x82 : "MissTech?",
-0x8a : "LightGet",
-0x8b : "HeavyGet",
-0x8c : "LightThrow",
-0x91 : "HeavyThrow",
-0x94 : "Swing1",
-0x95 : "Swing3",
-0x96 : "Swing4",
-0x97 : "SwingDash",
-0xa3 : "ItemScrew",
-0xa4 : "ItemScrew2",
-0xa5 : "ItemScrewFall",
-0xaf : "Swim?",
-0xb0 : "Swim?",
-0xb1 : "Dead",
-0xb2 : "Rebirth",
-0xb3 : "StepJump",
-0xf1 : "AirCatch",
-0xf2 : "AirCatchPose",
-0xf3 : "AirCatchHit",
-0xf4 : "AirCatchHang",
-0x108 : "LedgeTrump",
-0x10d : "ItemAssist",
-0x10e : "BulletBill?",
-0x14d : "Appeal",
-0x14f : "Entry",
-0x152 : "SpecialN",
-0x153 : "SpecialS",
-0x154 : "SpceialHi",
-0x155 : "SpecialLw",
-0x163 : "SpecialHiStart?",
 }
 
 def getSizeFromFormat(formatString):
@@ -725,59 +580,12 @@ class MscFile:
             if script.bounds[0] <= location and script.bounds[1] > location:
                 return script
 
-    def parseParameterForVariable(self, parameter):
-        strHexValue = str(hex(parameter))
-        if len(strHexValue) == len("0x10xxxxxx"): # if basic or bit
-            mostSignificantBytes = strHexValue[2:4]
-            decimalID = int(strHexValue[4:], 16)
-            if mostSignificantBytes == "10":
-                return "LA-Basic[{}]".format(decimalID)
-            if mostSignificantBytes == "11":
-                return "RA-Basic[{}]".format(decimalID)
-            if mostSignificantBytes == "12":
-                return "fighter_param_common-Basic[{}]".format(decimalID)
-            if mostSignificantBytes == "13":
-                return "fighter_param-Basic[{}]".format(decimalID)
-            if mostSignificantBytes == "20":
-                return "LA-Bit[{}]".format(decimalID)
-            if mostSignificantBytes == "21":
-                return "RA-Bit[{}]".format(decimalID)
-        elif len(strHexValue) == len("0x1xxxxxx"): # if float
-            mostSignificantByte = strHexValue[2:3]
-            decimalID = int(strHexValue[3:], 16)
-            if mostSignificantByte == "10":
-                return "LA-Float[{}]".format(decimalID)
-            if mostSignificantByte == "11":
-                return "RA-Float[{}]".format(decimalID)
-            if mostSignificantByte == "2":
-                return "fighter_param_common-Float[{}]".format(decimalID)
-            if mostSignificantByte == "3":
-                return "fighter_param-Float[{}]".format(decimalID)
-        return None
-
     def addDebugStrings(self):
         for script in self.scripts:
             for i in range(len(script)):
                 try:
-                    if script[i].command == 0x2C and script[i].parameters[0] > 0: # if printf
+                    if script[i].command == 0x2C and script[i].parameters[0] > 0:
                         script[i].debugString = self.strings[script[i-1].parameters[0]]
-                    elif script[i].command == 0xa: # if pushInt
-                        currentFirstParameter = script[i].parameters[0]
-                        if (len(str(hex(currentFirstParameter))) == len("0x10xxxxxx") or len(str(hex(currentFirstParameter))) == len("0x1xxxxxx")):
-                            variableString = self.parseParameterForVariable(currentFirstParameter)
-                            if variableString != None:
-                                script[i].debugString = variableString
-                        elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_16": # action
-                            if _RepresentsInt(script[i-2].parameters[0]):
-                                actionID = hex(script[i-2].parameters[0])
-                                if actionID in actionDict:
-                                    script[i].debugString = "call action {}, ID {}".format(actionDict[actionID], actionID)
-                                else:
-                                    script[i].debugString = "call action ID {}".format(actionID)
-                        elif isinstance(currentFirstParameter, str) and currentFirstParameter == "script_22": # animation
-                            if _RepresentsInt(script[i-3].parameters[0]):
-                                animationID = hex(script[i-3].parameters[0])
-                                script[i].debugString = "call animation ID {}".format(animationID)
                 except:
                     script[i].debugString = None
 
