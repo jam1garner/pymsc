@@ -6,6 +6,7 @@
 import sys, os,time
 from msc import *
 import timeit
+from argparse import ArgumentParser
 
 scriptNames = {}
 scriptOffsets = []
@@ -140,11 +141,16 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
 
 def main():
     global clearedPaths,scriptCalledVars
-    fname = sys.argv[1]
 
-    outputDir = "output/"
-    if len(sys.argv) >= 3:
-        outputDir = sys.argv[2].rstrip('/').rstrip('\\') + '/'
+    parse = ArgumentParser(description="Emulate MSC bytecode")
+    parse.add_argument("--char-std", action="store_true", dest="assumeCharStd", help="Add comments assuming it uses character standard lib")
+    parse.add_argument("mscFile", type=str, help="MSC File to disassemble")
+    parse.add_argument("outputDir", nargs='?', type=str, help="Folder to put output")
+    args = parse.parse_args()
+
+    fname = args.mscFile
+
+    outputDir = "output/" if not args.outputDir else args.outputDir
 
     mscFile = MscFile()
 
@@ -210,4 +216,4 @@ if __name__ == '__main__':
     start = timeit.default_timer()
     main()
     end = timeit.default_timer()
-    print('execution completed in %f seconds' % (end - start))
+    print('Execution completed in %f seconds' % (end - start))
