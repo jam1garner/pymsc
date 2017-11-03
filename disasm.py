@@ -148,76 +148,106 @@ def addComments(script, actionLines):
                 isFloatMask = 0xF000000
                 extractMSBMask = 0xFF000000
                 extractDecimalIDMask = 0xFFFFFF
-                if parameter & isBitOrBasicMask: # if basic or bit
+                if isinstance(parameter, int) and parameter & isBitOrBasicMask: # if basic or bit
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 6)
                     decimalID = parameter & extractDecimalIDMask
-                    if mostSignificantBytes == int('10',16):
+                    if mostSignificantBytes == 0x10:
                         script[i].debugString = "LA-Basic {}".format(decimalID)
-                    elif mostSignificantBytes == int('11',16):
+                    elif mostSignificantBytes == 0x11:
                         script[i].debugString = "RA-Basic {}".format(decimalID)
-                    elif mostSignificantBytes == int('12',16):
+                    elif mostSignificantBytes == 0x12:
                         script[i].debugString = "fighter_param_common-Basic {}".format(decimalID)
-                    elif mostSignificantBytes == int('13',16):
+                    elif mostSignificantBytes == 0x13:
                         script[i].debugString = "fighter_param-Basic {}".format(decimalID)
-                    elif mostSignificantBytes == int('20',16):
+                    elif mostSignificantBytes == 0x20:
                         script[i].debugString = "LA-Bit {}".format(decimalID)
-                    elif mostSignificantBytes == int('21',16):
+                    elif mostSignificantBytes == 0x21:
                         script[i].debugString = "RA-Bit {}".format(decimalID)
-                elif parameter & isFloatMask: # if float
+                    elif mostSignificantBytes == 0x1e:
+                        script[i].debugString = "Action Status-Type1? {}".format(decimalID)
+                    elif mostSignificantBytes == 0x1f:
+                        script[i].debugString = "Action Status-Type2? {}".format(decimalID)
+                elif isinstance(parameter, int) and parameter & isFloatMask: # if float
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 5)
                     extractDecimalIDMask = 0xFFFFF
                     decimalID = parameter & extractDecimalIDMask
-                    if mostSignificantBytes == int('10',16):
+                    if mostSignificantBytes == 0x10:
                         script[i].debugString = "LA-Float {}".format(decimalID)
-                    elif mostSignificantBytes == int('11',16):
+                    elif mostSignificantBytes == 0x11:
                         script[i].debugString = "RA-Float {}".format(decimalID)
-                    elif mostSignificantBytes == int('20',16):
+                    elif mostSignificantBytes == 0x20:
                         script[i].debugString = "fighter_param_common-Float {}".format(decimalID)
-                    elif mostSignificantBytes == int('30',16):
+                    elif mostSignificantBytes == 0x30:
                         script[i].debugString = "fighter_param-Float {}".format(decimalID)
                 elif isinstance(parameter, str) and parameter == "script_16": # action
-                    if _RepresentsInt(script[i-2].parameters[0]):
-                        actionID = script[i-2].parameters[0]                        
-                        if not actionLines[actionID].startswith("unk"):
-                            script[i].debugString = "call action {}".format(actionLines[actionID][:-1])
-                        else:
-                            script[i].debugString = "call action {}".format(hex(actionID))
+                    actionID = script[i-2].parameters[0]
+                    if not actionLines[actionID].startswith("unk"):
+                        script[i].debugString = "call action {}".format(actionLines[actionID][:-1])
+                    else:
+                        script[i].debugString = "call action {}".format(hex(actionID))
                 elif isinstance(parameter, str) and parameter == "script_22": # animation
-                    if _RepresentsInt(script[i-3].parameters[0]):
-                        animationID = hex(script[i-3].parameters[0])
-                        script[i].debugString = "call animation {}".format(animationID)
-            if script[i].command == 0x16: # if bitAnd
+                    animationID = hex(script[i-3].parameters[0])
+                    script[i].debugString = "call animation {}".format(animationID)
+            elif script[i].command == 0x16: # if bitAnd
                 if script[i-1].command == 0xa and script[i-2].command == 0xb:
                     if script[i-2].parameters[0] == 1: # must be global
                         ANDMask = script[i-1].parameters[0]
                         VarID = script[i-2].parameters[1]
-                        if VarID == int('0x26',16):
-                            if ANDMask == int('0x10',16):
+                        if VarID == 0x26:
+                            if ANDMask == 0x10:
                                 script[i].debugString = "if X/Y is pressed"
-                            elif ANDMask == int('0x1',16):
+                            elif ANDMask == 0x1:
                                 script[i].debugString = "if A is pressed"
-                            elif ANDMask == int('0x4',16):
+                            elif ANDMask == 0x4:
                                 script[i].debugString = "if B is pressed"
-                            elif ANDMask == int('0x40',16):
+                            elif ANDMask == 0x40:
                                 script[i].debugString = "if L/R is pressed"
-                        elif VarID == int('0x18',16):
-                            if ANDMask == int('0x100000',16):
+                        elif VarID == 0x18:
+                            if ANDMask == 0x100000:
                                 script[i].debugString = "if stick held up"
-                            elif ANDMask == int('0x20000000',16):
+                            elif ANDMask == 0x20000000:
                                 script[i].debugString = "if Z is pressed"
-                        elif VarID == int('0x1f',16):
-                            if ANDMask == int('0x10000',16):
+                        elif VarID == 0x1f:
+                            if ANDMask == 0x10000:
                                 script[i].debugString = "if stick held down"
-                            elif ANDMask == int('0x4000',16):
+                            elif ANDMask == 0x4000:
                                 script[i].debugString = "if stick held backward"
-                            elif ANDMask == int('0x8000',16):
+                            elif ANDMask == 0x8000:
                                 script[i].debugString = "if stick held forward"
-                            elif ANDMask == int('0x2',16):
+                            elif ANDMask == 0x2:
                                 script[i].debugString = "if D-Pad Up"
-                            elif ANDMask == int('0x4',16):
+                            elif ANDMask == 0x4:
                                 script[i].debugString = "if D-Pad Down"
-                            elif ANDMask == int('0x1',16):
+                            elif ANDMask == 0x1:
                                 script[i].debugString = "if D-Pad Left/Right"
+            elif script[i].command == 0x25: # if equals
+                if script[i-1].command == 0xa and script[i-2].command == 0xb:
+                    if script[i-2].parameters == [0x1,0x12]: # push globalVar12
+                        locationType = script[i-1].parameters[0]
+                        if locationType == 0x0:
+                            script[i].debugString = "if is grounded"
+                        elif locationType == 0x1:
+                            script[i].debugString = "if is on ledge"
+                        elif locationType == 0x2:
+                            script[i].debugString = "if is aerial"
+            elif script[i].command == 0x2d: # if sys
+                if script[i].parameters == [0x1, 0x12]:
+                    if script[i-1].command == 0xa:
+                        if script[i-1].parameters[0] == 0x2712:
+                            script[i].debugString = "if animation ended"
+                elif script[i].parameters == [0x1, 0x13]:
+                    if script[i-1].command == 0xa:
+                        if script[i-1].parameters[0] == 0x1:
+                            script[i].debugString = "push animation frame"
+                elif script[i].parameters == [0x1, 0x25]:
+                    if script[i-1].command == 0xa:
+                        if script[i-1].parameters[0] == 0x0:
+                            script[i].debugString = "push current percentage"
+                elif script[i].parameters == [0x1, 0x3e]:
+                    if script[i-1].command == 0xa:
+                        if script[i-1].parameters[0] == 0x11:
+                            script[i].debugString = "push held item ID"
+
         except:
             script[i].debugString = None
 
