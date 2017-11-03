@@ -139,7 +139,7 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
         raise
     return True
 
-def addComments(script, actionLines):
+def addCharacterComments(script, actionLines):
     for i in range(len(script)):
         try:
             if script[i].command == 0xa: # if pushInt
@@ -148,46 +148,46 @@ def addComments(script, actionLines):
                 isFloatMask = 0xF000000
                 extractMSBMask = 0xFF000000
                 extractDecimalIDMask = 0xFFFFFF
-                if isinstance(parameter, int) and parameter & isBitOrBasicMask: # if basic or bit
+                if isinstance(parameter, int) and (parameter & isBitOrBasicMask) != 0x0: # if basic or bit
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 6)
                     decimalID = parameter & extractDecimalIDMask
                     if mostSignificantBytes == 0x10:
-                        script[i].debugString = "LA-Basic {}".format(decimalID)
+                        script[i].debugString = "LA-Basic %d" % (decimalID)
                     elif mostSignificantBytes == 0x11:
-                        script[i].debugString = "RA-Basic {}".format(decimalID)
+                        script[i].debugString = "RA-Basic %d" % (decimalID)
                     elif mostSignificantBytes == 0x12:
-                        script[i].debugString = "fighter_param_common-Basic {}".format(decimalID)
+                        script[i].debugString = "fighter_param_common-Basic %d" % (decimalID)
                     elif mostSignificantBytes == 0x13:
-                        script[i].debugString = "fighter_param-Basic {}".format(decimalID)
+                        script[i].debugString = "fighter_param-Basic %d" % (decimalID)
                     elif mostSignificantBytes == 0x20:
-                        script[i].debugString = "LA-Bit {}".format(decimalID)
+                        script[i].debugString = "LA-Bit %d" % (decimalID)
                     elif mostSignificantBytes == 0x21:
-                        script[i].debugString = "RA-Bit {}".format(decimalID)
+                        script[i].debugString = "RA-Bit %d" % (decimalID)
                     elif mostSignificantBytes == 0x1e:
-                        script[i].debugString = "Action Status-Type1? {}".format(decimalID)
+                        script[i].debugString = "Action Status-Type1? %d" % (decimalID)
                     elif mostSignificantBytes == 0x1f:
-                        script[i].debugString = "Action Status-Type2? {}".format(decimalID)
-                elif isinstance(parameter, int) and parameter & isFloatMask: # if float
+                        script[i].debugString = "Action Status-Type2? %d" % (decimalID)
+                elif isinstance(parameter, int) and (parameter & isFloatMask) != 0: # if float
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 5)
                     extractDecimalIDMask = 0xFFFFF
                     decimalID = parameter & extractDecimalIDMask
                     if mostSignificantBytes == 0x10:
-                        script[i].debugString = "LA-Float {}".format(decimalID)
+                        script[i].debugString = "LA-Float %d" % (decimalID)
                     elif mostSignificantBytes == 0x11:
-                        script[i].debugString = "RA-Float {}".format(decimalID)
+                        script[i].debugString = "RA-Float %d" % (decimalID)
                     elif mostSignificantBytes == 0x20:
-                        script[i].debugString = "fighter_param_common-Float {}".format(decimalID)
+                        script[i].debugString = "fighter_param_common-Float %d" % (decimalID)
                     elif mostSignificantBytes == 0x30:
-                        script[i].debugString = "fighter_param-Float {}".format(decimalID)
+                        script[i].debugString = "fighter_param-Float %d" % (decimalID)
                 elif isinstance(parameter, str) and parameter == "script_16": # action
                     actionID = script[i-2].parameters[0]
                     if not actionLines[actionID].startswith("unk"):
-                        script[i].debugString = "call action {}".format(actionLines[actionID][:-1])
+                        script[i].debugString = "call action %s" % (actionLines[actionID][:-1])
                     else:
-                        script[i].debugString = "call action {}".format(hex(actionID))
+                        script[i].debugString = "call action 0x%x" % (actionID)
                 elif isinstance(parameter, str) and parameter == "script_22": # animation
                     animationID = hex(script[i-3].parameters[0])
-                    script[i].debugString = "call animation {}".format(animationID)
+                    script[i].debugString = "call animation %d" % (animationID)
             elif script[i].command == 0x16: # if bitAnd
                 if script[i-1].command == 0xa and script[i-2].command == 0xb:
                     if script[i-2].parameters[0] == 1: # must be global
@@ -303,7 +303,7 @@ def main():
             clearedPaths = []
             emuScript(script, 0, [], 2)
             if args.assumeCharStd:
-                addComments(script, actionLines)
+                addCharacterComments(script, actionLines)
 
             scriptPrinted = False
             for j,comm in enumerate(script):
