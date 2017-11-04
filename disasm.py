@@ -152,33 +152,33 @@ def addCharacterComments(script, actionLines):
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 6)
                     decimalID = parameter & extractDecimalIDMask
                     if mostSignificantBytes == 0x10:
-                        script[i].debugString = "LA-Basic %d" % (decimalID)
+                        script[i].debugString = "LA-Basic %i" % (decimalID)
                     elif mostSignificantBytes == 0x11:
-                        script[i].debugString = "RA-Basic %d" % (decimalID)
+                        script[i].debugString = "RA-Basic %i" % (decimalID)
                     elif mostSignificantBytes == 0x12:
-                        script[i].debugString = "fighter_param_common-Basic %d" % (decimalID)
+                        script[i].debugString = "fighter_param_common-Basic %i" % (decimalID)
                     elif mostSignificantBytes == 0x13:
-                        script[i].debugString = "fighter_param-Basic %d" % (decimalID)
+                        script[i].debugString = "fighter_param-Basic %i" % (decimalID)
                     elif mostSignificantBytes == 0x20:
-                        script[i].debugString = "LA-Bit %d" % (decimalID)
+                        script[i].debugString = "LA-Bit %i" % (decimalID)
                     elif mostSignificantBytes == 0x21:
-                        script[i].debugString = "RA-Bit %d" % (decimalID)
+                        script[i].debugString = "RA-Bit %i" % (decimalID)
                     elif mostSignificantBytes == 0x1e:
-                        script[i].debugString = "Action Status-Type1? %d" % (decimalID)
+                        script[i].debugString = "Action Status-Type1? %i" % (decimalID)
                     elif mostSignificantBytes == 0x1f:
-                        script[i].debugString = "Action Status-Type2? %d" % (decimalID)
+                        script[i].debugString = "Action Status-Type2? %i" % (decimalID)
                 elif isinstance(parameter, int) and (parameter & isFloatMask) != 0: # if float
                     mostSignificantBytes = (parameter & extractMSBMask) >> (4 * 5)
                     extractDecimalIDMask = 0xFFFFF
                     decimalID = parameter & extractDecimalIDMask
                     if mostSignificantBytes == 0x10:
-                        script[i].debugString = "LA-Float %d" % (decimalID)
+                        script[i].debugString = "LA-Float %i" % (decimalID)
                     elif mostSignificantBytes == 0x11:
-                        script[i].debugString = "RA-Float %d" % (decimalID)
+                        script[i].debugString = "RA-Float %i" % (decimalID)
                     elif mostSignificantBytes == 0x20:
-                        script[i].debugString = "fighter_param_common-Float %d" % (decimalID)
+                        script[i].debugString = "fighter_param_common-Float %i" % (decimalID)
                     elif mostSignificantBytes == 0x30:
-                        script[i].debugString = "fighter_param-Float %d" % (decimalID)
+                        script[i].debugString = "fighter_param-Float %i" % (decimalID)
                 elif isinstance(parameter, str) and parameter == "script_16": # action
                     actionID = script[i-2].parameters[0]
                     if not actionLines[actionID].startswith("unk"):
@@ -186,8 +186,8 @@ def addCharacterComments(script, actionLines):
                     else:
                         script[i].debugString = "call action 0x%x" % (actionID)
                 elif isinstance(parameter, str) and parameter == "script_22": # animation
-                    animationID = hex(script[i-3].parameters[0])
-                    script[i].debugString = "call animation %d" % (animationID)
+                    animationID = script[i-3].parameters[0]
+                    script[i].debugString = "call animation 0x%x" % (animationID)
             elif script[i].command == 0x16: # if bitAnd
                 if script[i-1].command == 0xa and script[i-2].command == 0xb:
                     if script[i-2].parameters[0] == 1: # must be global
