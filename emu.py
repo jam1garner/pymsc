@@ -14,11 +14,13 @@ from argparse import ArgumentParser
 
 
 class FunctionInfo:
-    def __init__(self, thisLocalVarPos, returnAddress):
+    def __init__(self, thisLocalVarPos, returnAddress, stackPos):
         self.localVarPos = thisLocalVarPos
         self.returnAddress = returnAddress
+        self.stackPos = stackPos
 
     def restore(self):
+        global evalPos, localVarPos
         localVarPos = self.localVarPos
         evalPos = returnAddress
 
@@ -69,7 +71,7 @@ def syscall(syscallNum, args, pushBit):
                 stackString += ('*' if i == stackPos else '') + hex(stack[i]) + (', ' if i != len(stack) - 1 else '')
         if stackString != "[":
             stackString = stackString[:-2]
-        print("Stack [Position = %i] - %s" % (stackPos, str(stack)))
+        print("Stack [Position = %i] - %s" % (stackPos, str([intToFloat(j) if j else 0 for j in stack])))
 
     #Debug var print
     elif syscallNum == 0xF1:
@@ -233,11 +235,11 @@ def evalCommand(command):
     elif c == 0x1:
         pass
     elif c == 0x2: #begin
-        functionStack.append(FunctionInfo(localVarPos, linkRegister))
         stackPos -= cParams[0]
+        functionStack.append(FunctionInfo(localVarPos, linkRegister, stackPos))
         localVarPos = stackPos
         stackPos += cParams[1]
-    elif c == 0x3: #end
+    elif c in [0x3, 0x6, 0x7, 0x8, 0x9]: #end or return    
         if len(functionStack) == 0:
             executing = False
             return
@@ -245,28 +247,16 @@ def evalCommand(command):
         if fInfo.returnAddress == None:
             executing = False
             return
+        if c in [0x6, 0x8]: #return a value
+            v = pop()
+            stackPos = fInfo.stackPos
+            push(v)
         localVarPos = fInfo.localVarPos
         evalPos = fInfo.returnAddress
         isJump = True
     elif c in [0x4, 0x5, 0x36]:
         isJump = True
         evalPos = cParams[0]
-    elif c == 0x6 or c == 0x8: #return value
-        fInfo = functionStack.pop()
-        if fInfo.returnAddress == None:
-            executing = False
-            return
-        localVarPos = fInfo.localVarPos
-        evalPos = fInfo.returnAddress
-        isJump = True
-    elif c == 0x7 or c == 0x9: #return no value
-        fInfo = functionStack.pop()
-        if fInfo.returnAddress == None:
-            executing = False
-            return
-        localVarPos = fInfo.localVarPos
-        evalPos = fInfo.returnAddress
-        isJump = True
     elif c == 0xA or c == 0xD:
         push(cParams[0], pushBit)
     elif c == 0xB:
@@ -566,7 +556,7 @@ def main():
     if args.mscFile == None:
         evalText()
     else:
-        evalFile(arg.mscFile)
+        evalFile(args.mscFile)
 
 if __name__ == '__main__':
     main()

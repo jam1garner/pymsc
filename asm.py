@@ -123,7 +123,7 @@ else:
     fileBytes = MSC_MAGIC
     fileBytes += struct.pack('<L', currentPos)
     fileBytes += struct.pack('<L', scriptPositions[entrypoint])
-    fileBytes += struct.pack('<L', len(scriptNames))
+    fileBytes += struct.pack('<L', len(scripts))
     fileBytes += struct.pack('<L', 0x16)#This probably doesn't matter?
     fileBytes += struct.pack('<L', maxStringLength)
     fileBytes += struct.pack('<L', len(strings))
