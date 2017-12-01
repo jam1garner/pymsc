@@ -410,17 +410,17 @@ def evalCommand(command):
         setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) / intToFloat(pop())),pushBit) #float Var-=
     elif c == 0x46:
         compTo = intToFloat(pop())
-        push(int(intToFloat(pop()) > compTo), pushBit)
+        push(int(intToFloat(pop()) == compTo), pushBit)
     elif c == 0x47:
         compTo = intToFloat(pop())
-        push(int(intToFloat(pop()) <= compTo), pushBit)
+        push(int(intToFloat(pop()) != compTo), pushBit)
     elif c == 0x48:
         compTo = intToFloat(pop())
         push(int(intToFloat(pop()) < compTo), pushBit)
     elif c == 0x49:
-        push(int(intToFloat(pop()) != intToFloat(pop())), pushBit) #float equals
+        push(int(intToFloat(pop()) <= intToFloat(pop())), pushBit) #float equals
     elif c == 0x4A:
-        push(int(intToFloat(pop()) == intToFloat(pop())), pushBit) #float equals
+        push(int(intToFloat(pop()) > intToFloat(pop())), pushBit) #float equals
     elif c == 0x4B:
         compTo = intToFloat(pop())
         push(int(intToFloat(pop()) >= compTo), pushBit)
