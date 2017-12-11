@@ -14,6 +14,7 @@ COMMAND_IDS = {
     "nop"            : 0x0,
     "begin"          : 0x2,
     "end"            : 0x3,
+    "jump"           : 0x4,
     "jump4"          : 0x4,
     "jump5"          : 0x5,
     "return_6"       : 0x6,

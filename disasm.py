@@ -256,6 +256,7 @@ def main():
 
     parse = ArgumentParser(description="Emulate MSC bytecode")
     parse.add_argument("--char-std", action="store_true", dest="assumeCharStd", help="Add comments assuming it uses character standard lib")
+    parse.add_argument("--suffix", dest="suffix", help="Add suffix to script names and references")
     parse.add_argument("mscFile", type=str, help="MSC File to disassemble")
     parse.add_argument("outputDir", nargs='?', type=str, help="Folder to put output")
     args = parse.parse_args()
@@ -263,6 +264,7 @@ def main():
     fname = args.mscFile
 
     outputDir = "output/" if not args.outputDir else args.outputDir
+    suffix = "" if not args.suffix else args.suffix
 
     mscFile = MscFile()
 
@@ -286,7 +288,7 @@ def main():
 
         for i,script in enumerate(mscFile):
             if not script.bounds[0] in scriptOffsets:
-                scriptNames[script.bounds[0]] = 'script_%i' % i
+                scriptNames[script.bounds[0]] = 'script_%i%s' % (i,suffix)
                 scriptOffsets.append(script.bounds[0])
 
         scriptCalledVars = {}
@@ -316,7 +318,7 @@ def main():
                         print('In script %i:' % i)
                         scriptPrinted = True
                     print('\t%i | %s | may be %s' % (j,str(comm),scriptNames[comm.parameters[0]]))
-            print('%sscript_%i.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',i),file=f)
+            print('%sscript_%i%s.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',i,suffix),file=f)
 
             jumpPositions = []
             for cmd in script:
@@ -324,7 +326,7 @@ def main():
                     if not cmd.parameters[0] in jumpPositions:
                         jumpPositions.append(cmd.parameters[0])
                     cmd.parameters[0] = 'loc_%X' % (cmd.parameters[0] - script.bounds[0])
-            with open(outputDir+'script_%i.txt' % (i), 'w', encoding='utf-8') as scriptFile:
+            with open(outputDir+'script_%i%s.txt' % (i,suffix), 'w', encoding='utf-8') as scriptFile:
                 for cmd in script:
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)

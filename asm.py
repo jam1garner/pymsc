@@ -89,7 +89,7 @@ else:
 
     scripts = []
     for script in scriptPaths:
-        with open(script, 'r') as f:
+        with open(script, 'r', encoding='utf-8') as f:
             tempScript = MscScript()
             tempScript.cmds = parseCommands(f.read(), mscStrings=strings)
             tempScript.name = script
