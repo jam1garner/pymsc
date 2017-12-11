@@ -85,6 +85,14 @@ class Group(list):
         entrySize = int((len(self) / self.entryCount) + 0.5)
         return self[i * entrySize : (i+1) * entrySize]
 
+    def setEntry(self, i, newEntry):
+        if self.entryCount == 0:
+            raise TypeError("Entry size is zero")
+        entrySize = int((len(self) / self.entryCount) + 0.5)
+        for j, k in enumerate(range(i*entrySize, (i+1) * entrySize)):
+            self[j] = newEntry[k]
+
+
     def setEntrySize(self, newSize):
         if self.entryCount == 0:
             return
