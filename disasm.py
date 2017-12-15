@@ -3,9 +3,8 @@
 # LICENSE or go to https://github.com/jam1garner/pymsc/blob/master/LICENSE #
 # for full license details.                                                #
 #**************************************************************************#
-import sys, os,time
 from msc import *
-import timeit
+import sys, os, time, os.path, timeit
 from argparse import ArgumentParser
 
 scriptNames = {}
@@ -282,6 +281,7 @@ def main():
 
     parse = ArgumentParser(description="Emulate MSC bytecode")
     parse.add_argument("--char-std", action="store_true", dest="assumeCharStd", help="Add comments assuming it uses character standard lib")
+    parse.add_argument("--commentScriptNum",action="store_true", dest="commentScriptNum", help="Comment the script number in any renamed script")
     parse.add_argument("--123", "--sequential-labels", action="store_true", dest="sequentialLabels", help="Labels in style loc_1, loc_2, etc. instead of based on byte position in script")
     parse.add_argument("--pathgen", action="store_true", dest="pathgen", help="Puts every function call in a list by script stored in Paths")
     parse.add_argument("--suffix", dest="suffix", help="Add suffix to script names and references")
@@ -292,7 +292,7 @@ def main():
 
     fname = args.mscFile
 
-    outputDir = "output/" if not args.outputDir else args.outputDir if args.outputDir[-1] in ["\\","/"] else args.outputDir + "/"
+    outputDir = os.path.basename(os.path.splitext(fname)[0])+"/" if not args.outputDir else args.outputDir if args.outputDir[-1] in ["\\","/"] else args.outputDir + "/"
     suffix = "" if not args.suffix else args.suffix
     acmdNames = []
     if args.mlistFile:
@@ -381,7 +381,7 @@ def main():
                         print('',file=scriptFile)
                         print('loc_%X:' % (jumpPositions.index(cmd.commandPosition) + 1 if args.sequentialLabels else cmd.commandPosition - script.bounds[0]), file=scriptFile)
                     print((' ' * 8 if len(jumpPositions) > 0 else '') + COMMAND_NAMES[cmd.command] + ('.' if cmd.pushBit else '') + ' '+cmd.strParams() + (' #"%s"' % cmd.debugString if cmd.debugString != None else ''), file=scriptFile)
-        
+
         if args.pathgen:
             with open(outputDir+'Paths', 'w') as pathFile:
                 t = list(scriptCalls.keys())
