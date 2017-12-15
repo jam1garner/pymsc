@@ -10,19 +10,36 @@ from argparse import ArgumentParser
 
 scriptNames = {}
 scriptOffsets = []
+scriptCalls = {}
+renames = {}
 
 gvIsOffset = [False for i in range(64)]
 for gv in [7] + list(range(11,17)) + [21,22,23,25,26,27,28,30,34,35,36,37,39,40,41,42,43,44,56,57,58,59,60,61]:
     gvIsOffset[gv] = True
 
 def updateScriptReference(popped, index, scriptName):
-    global scriptCalledVars
+    global scriptCalledVars, mscFile, acmdNames, useAcmdNames
     try:
         #if the Xth command popped off the stack is pushing a constant
         if popped[index].command in [0xA, 0xD]:
             #if the index pushed is a valid script offset
             if popped[index].parameters[0] in scriptOffsets:
-                popped[index].parameters[0] = scriptNames[popped[index].parameters[0]]
+                newScriptName = scriptNames[popped[index].parameters[0]]
+                popped[index].parameters[0] = newScriptName
+                if useAcmdNames and (newScriptName == 'script_22' or newScriptName == 'script_23'):
+                    if newScriptName == 'script_22' and popped[3].command in [0xA, 0xD]:
+                        acmdIndex = popped[3].parameters[0]
+                        if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
+                            renames[scriptName] = acmdNames[acmdIndex]
+                    elif newScriptName == 'script_23' and popped[1].command in [0xA, 0xD]:
+                        acmdIndex = popped[1].parameters[0]
+                        if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
+                            renames[scriptName] = acmdNames[acmdIndex]
+                if args.pathgen:
+                    sn = mscFile.getScriptAtLocation(popped[index].commandPosition).bounds[0]
+                    if not sn in scriptCalls:
+                        scriptCalls[sn] = []
+                    scriptCalls[sn].append("References %s" % popped[index].parameters[0])
         #if the Xth command popped off the stack is a variable
         if popped[index].command == 0xB:
             #if the variable is local
@@ -251,22 +268,44 @@ def addCharacterComments(script, actionLines):
         except:
             script[i].debugString = None
 
+def renameScripts(mscFile, renameDict):
+    for script in mscFile:
+        for command in script:
+            if command.command in [0xA, 0xD]:
+                if command.parameters[0] in renameDict:
+                    command.parameters[0] = renameDict[command.parameters[0]]
+        if script.name in renameDict:
+            script.name = renameDict[script.name]
+
 def main():
-    global clearedPaths,scriptCalledVars
+    global clearedPaths,scriptCalledVars,mscFile,args,acmdNames,useAcmdNames
 
     parse = ArgumentParser(description="Emulate MSC bytecode")
     parse.add_argument("--char-std", action="store_true", dest="assumeCharStd", help="Add comments assuming it uses character standard lib")
+    parse.add_argument("--123", "--sequential-labels", action="store_true", dest="sequentialLabels", help="Labels in style loc_1, loc_2, etc. instead of based on byte position in script")
+    parse.add_argument("--pathgen", action="store_true", dest="pathgen", help="Puts every function call in a list by script stored in Paths")
     parse.add_argument("--suffix", dest="suffix", help="Add suffix to script names and references")
+    parse.add_argument("--acmdNames", dest="mlistFile", help="Rename scripts based on the ACMD subaction it is registered to, ")
     parse.add_argument("mscFile", type=str, help="MSC File to disassemble")
     parse.add_argument("outputDir", nargs='?', type=str, help="Folder to put output")
     args = parse.parse_args()
 
     fname = args.mscFile
 
-    outputDir = "output/" if not args.outputDir else args.outputDir
+    outputDir = "output/" if not args.outputDir else args.outputDir if args.outputDir[-1] in ["\\","/"] else args.outputDir + "/"
     suffix = "" if not args.suffix else args.suffix
+    acmdNames = []
+    if args.mlistFile:
+        with open(args.mlistFile, 'r') as f:
+            acmdNames = [i.replace('\n','') for i in f.readlines()]
+
+    useAcmdNames = len(acmdNames) > 0
 
     mscFile = MscFile()
+
+    if len(suffix) > 0:
+        for script in mscFile:
+            script.name += suffix
 
     if args.assumeCharStd:
         actionCSVRealPath = os.path.join(sys.path[0], "actions.csv")
@@ -288,7 +327,7 @@ def main():
 
         for i,script in enumerate(mscFile):
             if not script.bounds[0] in scriptOffsets:
-                scriptNames[script.bounds[0]] = 'script_%i%s' % (i,suffix)
+                scriptNames[script.bounds[0]] = script.name
                 scriptOffsets.append(script.bounds[0])
 
         scriptCalledVars = {}
@@ -299,6 +338,8 @@ def main():
         for script in mscFile:
             clearedPaths = []
             emuScript(script, 0, [], 1)
+
+        renameScripts(mscFile, renames)
 
         headerPrinted = False
         for i,script in enumerate(mscFile):
@@ -318,20 +359,38 @@ def main():
                         print('In script %i:' % i)
                         scriptPrinted = True
                     print('\t%i | %s | may be %s' % (j,str(comm),scriptNames[comm.parameters[0]]))
-            print('%sscript_%i%s.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',i,suffix),file=f)
+            print('%s%s.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',script.name),file=f)
 
             jumpPositions = []
             for cmd in script:
                 if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
                     if not cmd.parameters[0] in jumpPositions:
                         jumpPositions.append(cmd.parameters[0])
-                    cmd.parameters[0] = 'loc_%X' % (cmd.parameters[0] - script.bounds[0])
-            with open(outputDir+'script_%i%s.txt' % (i,suffix), 'w', encoding='utf-8') as scriptFile:
+                    if not args.sequentialLabels:
+                        cmd.parameters[0] = 'loc_%X' % (cmd.parameters[0] - script.bounds[0])
+
+            if args.sequentialLabels:
+                jumpPositions.sort()
+                for cmd in script:
+                    if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
+                        cmd.parameters[0] = 'loc_%X' % (jumpPositions.index(cmd.parameters[0]) + 1)            
+
+            with open(outputDir+'%s.txt' % (script.name), 'w', encoding='utf-8') as scriptFile:
                 for cmd in script:
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)
-                        print('loc_%X:' % (cmd.commandPosition - script.bounds[0]), file=scriptFile)
+                        print('loc_%X:' % (jumpPositions.index(cmd.commandPosition) + 1 if args.sequentialLabels else cmd.commandPosition - script.bounds[0]), file=scriptFile)
                     print((' ' * 8 if len(jumpPositions) > 0 else '') + COMMAND_NAMES[cmd.command] + ('.' if cmd.pushBit else '') + ' '+cmd.strParams() + (' #"%s"' % cmd.debugString if cmd.debugString != None else ''), file=scriptFile)
+        
+        if args.pathgen:
+            with open(outputDir+'Paths', 'w') as pathFile:
+                t = list(scriptCalls.keys())
+                t.sort()
+                for scriptLoc in t:
+                    print("%s:"%scriptNames[scriptLoc],file=pathFile)
+                    for message in scriptCalls[scriptLoc]:
+                        print(message,file=pathFile)
+                    print("",file=pathFile)
 
 if __name__ == '__main__':
     start = timeit.default_timer()

@@ -563,7 +563,7 @@ class MscFile:
             else:
                 end = endOfScripts
             newScript = MscScript()
-            newScript.name = 'Script '+str(i)
+            newScript.name = 'script_%i' % i
             if i == self.entryPoint:
                 newScript.name = 'Entrypoint Script'
             newScript.read(f, start, end)
