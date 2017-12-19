@@ -5,7 +5,7 @@
 #**************************************************************************#
 from msc import *
 from sys import argv
-from os.path import isfile
+from os.path import isfile, dirname
 
 #Parse args
 savePaths = []
@@ -44,7 +44,9 @@ scriptPaths = [line.split('#')[0].strip() for line in lines if line.split('#')[0
 globalPaths = [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] == '>' and line.strip()[0] != '|']
 savePaths += [line.split('#')[0].strip()[1:] for line in lines if line.split('#')[0].strip() != '' and line.strip()[0] != '>' and line.strip()[0] == '|']
 if len(savePaths) == 0:
-    savePaths = ["test.mscsb"]
+    savePaths = [dirname(__file__)+".mscsb"]
+
+print("Assembling to files:\n"+"\n".join(savePaths))
 
 if isLib:
     fileBytes = b'MSCLIB\x00'

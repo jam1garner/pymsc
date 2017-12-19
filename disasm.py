@@ -17,7 +17,7 @@ for gv in [7] + list(range(11,17)) + [21,22,23,25,26,27,28,30,34,35,36,37,39,40,
     gvIsOffset[gv] = True
 
 def updateScriptReference(popped, index, scriptName):
-    global scriptCalledVars, mscFile, acmdNames, useAcmdNames
+    global scriptCalledVars, mscFile, acmdNames, charAcmdNames
     try:
         #if the Xth command popped off the stack is pushing a constant
         if popped[index].command in [0xA, 0xD]:
@@ -25,20 +25,20 @@ def updateScriptReference(popped, index, scriptName):
             if popped[index].parameters[0] in scriptOffsets:
                 newScriptName = scriptNames[popped[index].parameters[0]]
                 popped[index].parameters[0] = newScriptName
-                if useAcmdNames and (newScriptName == 'script_22' or newScriptName == 'script_23'):
-                    if newScriptName == 'script_22' and popped[3].command in [0xA, 0xD]:
-                        acmdIndex = popped[3].parameters[0]
-                        if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
-                            renames[scriptName] = acmdNames[acmdIndex]
-                    elif newScriptName == 'script_23' and popped[1].command in [0xA, 0xD]:
-                        acmdIndex = popped[1].parameters[0]
-                        if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
+                if ((newScriptName == 'script_22' and charAcmdNames) or (newScriptName == 'script_24' and not charAcmdNames)) and popped[3].command in [0xA, 0xD]:
+                    acmdIndex = popped[3].parameters[0]
+                    if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
+                        renames[scriptName] = acmdNames[acmdIndex]
+                elif ((newScriptName == 'script_23' and charAcmdNames) or (newScriptName == 'script_25' and not charAcmdNames)) and popped[1].command in [0xA, 0xD]:
+                    acmdIndex = popped[1].parameters[0]
+                    if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
                             renames[scriptName] = acmdNames[acmdIndex]
                 if args.pathgen:
                     sn = mscFile.getScriptAtLocation(popped[index].commandPosition).bounds[0]
                     if not sn in scriptCalls:
                         scriptCalls[sn] = []
                     scriptCalls[sn].append("References %s" % popped[index].parameters[0])
+
         #if the Xth command popped off the stack is a variable
         if popped[index].command == 0xB:
             #if the variable is local
@@ -277,7 +277,7 @@ def renameScripts(mscFile, renameDict):
             script.name = renameDict[script.name]
 
 def main():
-    global clearedPaths,scriptCalledVars,mscFile,args,acmdNames,useAcmdNames
+    global clearedPaths,scriptCalledVars,mscFile,args,acmdNames,charAcmdNames
 
     parse = ArgumentParser(description="Emulate MSC bytecode")
     parse.add_argument("--char-std", action="store_true", dest="assumeCharStd", help="Add comments assuming it uses character standard lib")
@@ -285,7 +285,9 @@ def main():
     parse.add_argument("--123", "--sequential-labels", action="store_true", dest="sequentialLabels", help="Labels in style loc_1, loc_2, etc. instead of based on byte position in script")
     parse.add_argument("--pathgen", action="store_true", dest="pathgen", help="Puts every function call in a list by script stored in Paths")
     parse.add_argument("--suffix", dest="suffix", help="Add suffix to script names and references")
-    parse.add_argument("--acmdNames", dest="mlistFile", help="Rename scripts based on the ACMD subaction it is registered to, ")
+    parse.add_argument("--acmdNames", dest="mlistFile", help="Rename scripts based on the ACMD subaction it runs")
+    parse.add_argument("--article", action="store_true", dest="isArticle", help="Use with --acmdNames for when you want to label article scripts")
+    parse.add_argument("--extension", action="store", dest="extension", help="Change the extension used for scripts (default: .txt)")
     parse.add_argument("mscFile", type=str, help="MSC File to disassemble")
     parse.add_argument("outputDir", nargs='?', type=str, help="Folder to put output")
     args = parse.parse_args()
@@ -294,12 +296,13 @@ def main():
 
     outputDir = os.path.basename(os.path.splitext(fname)[0])+"/" if not args.outputDir else args.outputDir if args.outputDir[-1] in ["\\","/"] else args.outputDir + "/"
     suffix = "" if not args.suffix else args.suffix
+    extension = "txt" if not args.extension else args.extension.replace('.', '')
     acmdNames = []
     if args.mlistFile:
         with open(args.mlistFile, 'r') as f:
             acmdNames = [i.replace('\n','') for i in f.readlines()]
 
-    useAcmdNames = len(acmdNames) > 0
+    charAcmdNames = not args.isArticle
 
     mscFile = MscFile()
 
@@ -375,7 +378,7 @@ def main():
                     if cmd.command in [0x4, 0x5, 0x2e, 0x34, 0x35, 0x36]:
                         cmd.parameters[0] = 'loc_%X' % (jumpPositions.index(cmd.parameters[0]) + 1)            
 
-            with open(outputDir+'%s.txt' % (script.name), 'w', encoding='utf-8') as scriptFile:
+            with open(outputDir+'%s.%s' % (script.name,extension), 'w', encoding='utf-8') as scriptFile:
                 for cmd in script:
                     if cmd.commandPosition in jumpPositions:
                         print('',file=scriptFile)
