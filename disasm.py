@@ -362,7 +362,7 @@ def main():
                         print('In script %i:' % i)
                         scriptPrinted = True
                     print('\t%i | %s | may be %s' % (j,str(comm),scriptNames[comm.parameters[0]]))
-            print('%s%s.txt' % (':' if mscFile.entryPoint == script.bounds[0] else '',script.name),file=f)
+            print('%s%s.%s' % (':' if mscFile.entryPoint == script.bounds[0] else '',script.name,extension),file=f)
 
             jumpPositions = []
             for cmd in script:
