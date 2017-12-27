@@ -79,7 +79,7 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
                     #Pop the needed commands into the popped list in case one of them is needed
                     popped.append(stack.pop())
             except:
-                print('Analysis command %s pop failed in script %X' % (COMMAND_NAMES[script[i].command], script.bounds[0]))
+                print('Analysis command %s pop failed in script %X command at position %X' % (COMMAND_NAMES[script[i].command], script.bounds[0], script[i].commandPosition))
 
             #First pass
             if passCount == 0:
@@ -151,7 +151,7 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
                 #if it isn't a jump, move on to the next command
                 i += 1
     except:
-        print('Analysis error occured in script %s' % scriptNames[script.bounds[0]])
+        print('Analysis error occured in script %s at %X' % (scriptNames[script.bounds[0]], script.bounds[0]))
         raise
     return True
 

@@ -48,6 +48,8 @@ if len(savePaths) == 0:
 
 print("Assembling to files:\n"+"\n".join(savePaths))
 
+globalAliases = {}
+
 if isLib:
     fileBytes = b'MSCLIB\x00'
     fileBytes += struct.pack('<L', len(scriptPaths))
@@ -93,7 +95,7 @@ else:
     for script in scriptPaths:
         with open(script, 'r', encoding='utf-8') as f:
             tempScript = MscScript()
-            tempScript.cmds = parseCommands(f.read(), mscStrings=strings)
+            tempScript.cmds = parseCommands(f.read(), globalAliases, strings)
             tempScript.name = script
             scripts.append(tempScript)
 

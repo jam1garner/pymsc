@@ -300,8 +300,6 @@ def _RepresentsFloat(s):
     except:
         return False
 
-globalAliases = {}
-
 def parseCommands(text, refs={}, mscStrings=[]):
     lines = text.replace(', ',',').split('\n')
     lines = [line.strip() for line in lines if line.strip() != '']
@@ -338,15 +336,12 @@ def parseCommands(text, refs={}, mscStrings=[]):
             cmds.append(cmd)
     labelNames = labels.keys()
     aliasNames = aliases.keys()
-    globalAliasNames = globalAliases.keys()
     for cmd in cmds:
         for i in range(len(cmd.parameters)):
             if cmd.parameters[i] in labelNames:
                 cmd.parameters[i] = labels[cmd.parameters[i]]
             elif cmd.parameters[i] in aliasNames:
                 cmd.parameters[i] = aliases[cmd.parameters[i]]
-            elif cmd.parameters[i] in globalAliasNames:
-                cmd.parameters[i] = globalAliases[cmd.parameters[i]]
             elif cmd.parameters[i] in refs:
                 cmd.parameters[i] = refs[cmd.parameters[i]]
             elif _RepresentsInt(cmd.parameters[i]):
