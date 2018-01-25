@@ -162,7 +162,7 @@ COMMAND_FORMAT = {
     0x3c : '',
     0x3d : '',
     0x3e : '',
-    0x3f : '',
+    0x3f : 'BH',
     0x40 : 'BH',
     0x41 : 'BH',
     0x42 : 'BH',
@@ -352,10 +352,10 @@ def parseCommands(text, refs={}, mscStrings=[]):
     return cmds
 
 class Command:
-    def __init__(self):
-        self.command = 0
-        self.parameters = []
-        self.pushBit = False
+    def __init__(self, command=0, parameters=[], pushBit=False):
+        self.command = command
+        self.parameters = parameters
+        self.pushBit = pushBit
         self.paramSize = 0
         self.commandPosition = 0
         self.debugString = None
@@ -481,7 +481,8 @@ class MscScript:
     def size(self):
         s = 0
         for cmd in self.cmds:
-            s += (0 if cmd.command in [0xFFFE, 0xFFFF] else 1) + getSizeFromFormat(COMMAND_FORMAT[cmd.command])
+            if type(cmd) == Command:
+                s += (0 if cmd.command in [0xFFFE, 0xFFFF] else 1) + getSizeFromFormat(COMMAND_FORMAT[cmd.command])
         return s
 
 def readInt(f, endian):
