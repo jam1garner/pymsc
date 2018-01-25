@@ -332,10 +332,10 @@ def evalCommand(command):
     elif c == 0x2B:
         push(0 if pop() != 0 else 1, pushBit)#logic not
     elif c == 0x2C:
-        formatString = strings[pop()]
         formatValues = []
         for i in range(cParams[0]-1):
             formatValues.insert(0, pop())
+        formatString = strings[pop()]
         printf(formatString, formatValues)
     elif c == 0x2D:
         args = []
