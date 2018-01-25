@@ -375,7 +375,7 @@ def evalCommand(command):
     elif c == 0x35:
         if pop() != 0:
             isJump = True
-            evalPos = cParams
+            evalPos = cParams[0]
     elif c == 0x38:
         convertToFloat = lambda i: floatToInt(float(i))
         stack[stackPos - (1 + cParams[0])] = convertToFloat(stack[stackPos - (1 + cParams[0])]) # intToFloat
