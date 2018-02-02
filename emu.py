@@ -432,7 +432,7 @@ def evalCommand(command):
         evalPos += len(command)
 
 def evalMscFile(mscFileObject):
-    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister
+    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister,mainLoopFunc
     mscFile = mscFileObject
     strings = mscFile.strings
     evalPos = mscFile.entryPoint
@@ -516,9 +516,10 @@ def load_fighter_param(filepath, entry):
         sharedVars[0x03000000 + i] = int(val)
 
 def main():
-    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister,sharedVars
+    global mscFile,mscFileBytes,stack,functionStack,stackPos,localVarPos,evalPos,exceptionRegister,globalVars,executing,strings,linkRegister,sharedVars,mainLoopFunc
     mscFile = None
     mscFileBytes = None
+    mainLoopFunc = None
     stack = [None] * 0x80
     functionStack = []
     stackPos = 0

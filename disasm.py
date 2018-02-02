@@ -25,11 +25,11 @@ def updateScriptReference(popped, index, scriptName):
             if popped[index].parameters[0] in scriptOffsets:
                 newScriptName = scriptNames[popped[index].parameters[0]]
                 popped[index].parameters[0] = newScriptName
-                if ((newScriptName == 'script_22' and charAcmdNames) or (newScriptName == 'script_24' and not charAcmdNames)) and popped[3].command in [0xA, 0xD]:
+                if (((newScriptName == 'script_22' and charAcmdNames) or (newScriptName == 'script_24' and not charAcmdNames))) and len(popped) > 3 and popped[3].command in [0xA, 0xD]:
                     acmdIndex = popped[3].parameters[0]
                     if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
                         renames[scriptName] = acmdNames[acmdIndex]
-                elif ((newScriptName == 'script_23' and charAcmdNames) or (newScriptName == 'script_25' and not charAcmdNames)) and popped[1].command in [0xA, 0xD]:
+                elif (((newScriptName == 'script_23' and charAcmdNames) or (newScriptName == 'script_25' and not charAcmdNames))) and len(popped) > 1 and popped[1].command in [0xA, 0xD]:
                     acmdIndex = popped[1].parameters[0]
                     if acmdIndex < len(acmdNames) and acmdNames[acmdIndex][:2] != '0x':
                             renames[scriptName] = acmdNames[acmdIndex]
