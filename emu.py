@@ -27,7 +27,7 @@ class FunctionInfo:
 
 #Simulate an MSC syscall given the information from 
 def syscall(syscallNum, args, pushBit):
-    global sharedVars,evalPos,stack
+    global sharedVars,evalPos,stack,y_unit
     #Random int in range
     if syscallNum == 0x9:
         push(randint(args[0], args[1]-1), pushBit)
@@ -72,6 +72,13 @@ def syscall(syscallNum, args, pushBit):
             push(random(), pushBit)
         elif operation == 7:
             push(abs(atan2(intToFloat(args[1]), intToFloat(args[2])) - atan2(intToFloat(args[3]), intToFloat(args[4]))),pushBit)
+        elif operation == 8:
+            push(y_unit, pushBit)
+        elif operation == 0xA:
+            mag = sqrt((intToFloat(args[1])**2)+(intToFloat(args[2])**2))
+            x = intToFloat(args[1]) / mag
+            y_unit = intToFloat(args[2]) / mag
+            push(,pushBit)
 
     #Variable access
     elif syscallNum == 0x17:
