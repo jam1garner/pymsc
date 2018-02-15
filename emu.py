@@ -8,9 +8,10 @@ from sys import argv
 from msc import *
 from param import *
 from time import sleep
-from random import randint
+from random import randint,random
 from os.path import isfile
 from argparse import ArgumentParser
+from math import sqrt, cos, sin, atan
 
 
 class FunctionInfo:
@@ -52,6 +53,25 @@ def syscall(syscallNum, args, pushBit):
             sharedVars[args[1]] = 0
         elif operation == 0x2711:
             sharedVars[args[1]] = 1
+
+    elif syscallNum == 0xA:
+        operation = args[0]
+        if operation == 0: #sqrt
+            push(sqrt(intToFloat(args[1])),pushBit)
+        elif operation == 1: #angle
+            push(atan(intToFloat(args[1]) / intToFloat(args)),pushbit)
+        elif operation == 2:
+            push(intToFloat(args[1])**args[2],pushBit)
+        elif operation == 3:
+            push(sqrt((intToFloat(args[1])**2)+(intToFloat(args[2])**2)+(intToFloat(args[3])**2)),pushBit)
+        elif operation == 4:
+            push(cos(intToFloat(args[1])),pushBit)
+        elif operation == 5:
+            push(sin(intToFloat(args[1])),pushBit)
+        elif operation == 6:
+            push(random(), pushBit)
+        elif operation == 7:
+            push(abs(atan2(intToFloat(args[1]), intToFloat(args[2])) - atan2(intToFloat(args[3]), intToFloat(args[4]))),pushBit)
 
     #Variable access
     elif syscallNum == 0x17:
