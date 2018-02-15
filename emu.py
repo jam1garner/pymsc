@@ -11,7 +11,7 @@ from time import sleep
 from random import randint,random
 from os.path import isfile
 from argparse import ArgumentParser
-from math import sqrt, cos, sin, atan
+from math import sqrt, cos, sin, atan2
 
 
 class FunctionInfo:
@@ -59,7 +59,7 @@ def syscall(syscallNum, args, pushBit):
         if operation == 0: #sqrt
             push(sqrt(intToFloat(args[1])),pushBit)
         elif operation == 1: #angle
-            push(atan(intToFloat(args[1]) / intToFloat(args)),pushbit)
+            push(atan2(intToFloat(args[1]), intToFloat(args[2])),pushBit)
         elif operation == 2:
             push(intToFloat(args[1])**args[2],pushBit)
         elif operation == 3:
