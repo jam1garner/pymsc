@@ -78,7 +78,7 @@ def syscall(syscallNum, args, pushBit):
             mag = sqrt((intToFloat(args[1])**2)+(intToFloat(args[2])**2))
             x = intToFloat(args[1]) / mag
             y_unit = intToFloat(args[2]) / mag
-            push(,pushBit)
+            push(x,pushBit)
 
     #Variable access
     elif syscallNum == 0x17:
