@@ -83,10 +83,10 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
 
             #First pass
             if passCount == 0:
-                #if the command is a function call
+                # if the command is a function call
                 if script[i].command in [0x2f, 0x30, 0x31]:
                     updateScriptReference(popped, 0, scriptName)
-                #if the command in a sys call
+                # if the command in a sys call
                 if script[i].command == 0x2d:
                     if script[i].parameters[1] == 0:
                         updateScriptReference(popped, 0, scriptName)
@@ -100,23 +100,27 @@ def emuScript(script, startIndex, stack, passCount, endPosition=None, depth=0):
                 if script[i].command == 0x1C and script[i].parameters[0] == 0x1 and gvIsOffset[script[i].parameters[1]]:
                     updateScriptReference(popped, 0, scriptName)
             elif passCount >= 1:
-                if script[i].command in [0x1C, 0x41] and scriptName in scriptCalledVars.keys():
+                # if command is setting a variable
+                if script[i].command in [0x1C, 0x41] and scriptName in scriptCalledVars:
                     if script[i].parameters[0] == 0 and script[i].parameters[1] in scriptCalledVars[scriptName]:
                         updateScriptReference(popped, 0, scriptName)
+                # if command is func call
                 if script[i].command in [0x2f, 0x30, 0x31]:
                     if popped[0].command in [0xA, 0xD]:
                         jumpScriptName = None
-                        if isinstance(popped[0].parameters[0], int) and popped[0].parameters[0] in scriptNames.keys():
+                        if isinstance(popped[0].parameters[0], int) and popped[0].parameters[0] in scriptNames:
                             jumpScriptName = scriptNames[popped[0].parameters[0]]
                         elif isinstance(popped[0].parameters[0], str):
                             jumpScriptName = popped[0].parameters[0]
 
-                        if jumpScriptName in scriptCalledVars.keys():
+                        if jumpScriptName in scriptCalledVars:
                             for localVarNum in scriptCalledVars[jumpScriptName]:
                                 if localVarNum+1 < len(popped):
-                                    updateScriptReference(popped, localVarNum + 1, scriptName)
+                                    if scriptName == 'script_2324':
+                                        print()
+                                    updateScriptReference(popped, -(localVarNum + 1), scriptName)
 
-            #if the command is push, just readd the command before it
+            #if the command is push, just read the command before it
             if script[i].command == 0x32:
                 stack.append(script[i-1])
             #if the pushBit is set, push the command onto the stack
