@@ -302,7 +302,7 @@ def _RepresentsFloat(s):
         return False
 
 def parseCommands(text, refs={}, mscStrings=[]):
-    lines = text.replace(', ',',').split('\n')
+    lines = text.split('\n')
     lines = [line.strip() for line in lines if line.strip() != '']
     lines = [line.split('#')[0] for line in lines if line.split('#')[0] != '']
     splitCommands = [[split for split in line.split(' ') if split != ''] for line in lines]
@@ -324,7 +324,9 @@ def parseCommands(text, refs={}, mscStrings=[]):
             cmd.command = COMMAND_IDS[splitCommand[0]]
             currentPos += getSizeFromFormat(COMMAND_FORMAT[cmd.command]) + 1
             if len(splitCommand) > 1 and not ((cmd.command == 0xA or cmd.command == 0xD) and splitCommand[1][0] == '"'):
-                cmd.parameters = [param for param in splitCommand[1].split(',')]
+                cmd.parameters = []
+                for token in splitCommand[1:]:
+                    cmd.parameters.extend([split for split in token.split(',') if split != ''])
             elif (cmd.command == 0xA or cmd.command == 0xD) and splitCommand[1][0] == '"':
                 printString = splitCommand[1][1:]
                 for s in splitCommand[2:]:
@@ -333,7 +335,6 @@ def parseCommands(text, refs={}, mscStrings=[]):
                     printString = printString[:-1]
                 cmd.parameters = [len(mscStrings)]
                 mscStrings.append(printString)
-
             cmds.append(cmd)
     labelNames = labels.keys()
     aliasNames = aliases.keys()
