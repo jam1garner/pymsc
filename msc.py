@@ -315,7 +315,9 @@ def parseCommands(text, refs={}, mscStrings=[]):
         if splitCommand[0][-1] == ':':
             labels[splitCommand[0][0:-1]] = currentPos
         elif splitCommand[0] == '.alias':
-            params = splitCommand[1].split(',')
+            params = []
+            for token in splitCommand[1:]:
+                params.extend([split for split in token.split(',') if split != ''])
             aliases[params[1]] = int(params[0], 0)
         else:
             if splitCommand[0][-1] == '.':
