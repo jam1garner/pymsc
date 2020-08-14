@@ -331,7 +331,7 @@ def evalCommand(command):
     elif c == 0x1F:
         setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) * pop(),pushBit) #Var *=
     elif c == 0x20:
-        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) / pop(),pushBit) #Var /=
+        setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) // pop(),pushBit) #Var /=
     elif c == 0x21:
         setVar(cParams[0], cParams[1], getVar(cParams[0], cParams[1]) % pop(),pushBit) #Var %=
     elif c == 0x22:
@@ -432,9 +432,9 @@ def evalCommand(command):
     elif c == 0x43:
         setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) - intToFloat(pop())),pushBit) #float Var-=
     elif c == 0x44:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) * intToFloat(pop())),pushBit) #float Var+=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) * intToFloat(pop())),pushBit) #float Var*=
     elif c == 0x45:
-        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) / intToFloat(pop())),pushBit) #float Var-=
+        setVar(cParams[0], cParams[1], floatToInt(intToFloat(getVar(cParams[0], cParams[1])) / intToFloat(pop())),pushBit) #float Var/=
     elif c == 0x46:
         compTo = intToFloat(pop())
         push(int(intToFloat(pop()) == compTo), pushBit)
